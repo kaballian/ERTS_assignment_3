@@ -1,0 +1,139 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\RTS\\assignment_3\\ERTS_assignment_3\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{42E21D1A-2609-47FD-8230-BE59B5515682}|ERTS_assignment_3\\ERTS_assignment_3.vcxproj|C:\\RTS\\assignment_3\\ERTS_assignment_3\\ERTS_assignment_3\\Main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{42E21D1A-2609-47FD-8230-BE59B5515682}|ERTS_assignment_3\\ERTS_assignment_3.vcxproj|solutionrelative:ERTS_assignment_3\\Main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{42E21D1A-2609-47FD-8230-BE59B5515682}|ERTS_assignment_3\\ERTS_assignment_3.vcxproj|C:\\RTS\\assignment_3\\ERTS_assignment_3\\ERTS_assignment_3\\Singleton.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{42E21D1A-2609-47FD-8230-BE59B5515682}|ERTS_assignment_3\\ERTS_assignment_3.vcxproj|solutionrelative:ERTS_assignment_3\\Singleton.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{42E21D1A-2609-47FD-8230-BE59B5515682}|ERTS_assignment_3\\ERTS_assignment_3.vcxproj|C:\\RTS\\assignment_3\\ERTS_assignment_3\\ERTS_assignment_3\\PowerOnSelfTest.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{42E21D1A-2609-47FD-8230-BE59B5515682}|ERTS_assignment_3\\ERTS_assignment_3.vcxproj|solutionrelative:ERTS_assignment_3\\PowerOnSelfTest.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{42E21D1A-2609-47FD-8230-BE59B5515682}|ERTS_assignment_3\\ERTS_assignment_3.vcxproj|C:\\RTS\\assignment_3\\ERTS_assignment_3\\ERTS_assignment_3\\EmbeddedSystemX.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{42E21D1A-2609-47FD-8230-BE59B5515682}|ERTS_assignment_3\\ERTS_assignment_3.vcxproj|solutionrelative:ERTS_assignment_3\\EmbeddedSystemX.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{42E21D1A-2609-47FD-8230-BE59B5515682}|ERTS_assignment_3\\ERTS_assignment_3.vcxproj|C:\\RTS\\assignment_3\\ERTS_assignment_3\\ERTS_assignment_3\\PowerOnSelfTest.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{42E21D1A-2609-47FD-8230-BE59B5515682}|ERTS_assignment_3\\ERTS_assignment_3.vcxproj|solutionrelative:ERTS_assignment_3\\PowerOnSelfTest.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{42E21D1A-2609-47FD-8230-BE59B5515682}|ERTS_assignment_3\\ERTS_assignment_3.vcxproj|C:\\RTS\\assignment_3\\ERTS_assignment_3\\ERTS_assignment_3\\Singleton.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{42E21D1A-2609-47FD-8230-BE59B5515682}|ERTS_assignment_3\\ERTS_assignment_3.vcxproj|solutionrelative:ERTS_assignment_3\\Singleton.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{42E21D1A-2609-47FD-8230-BE59B5515682}|ERTS_assignment_3\\ERTS_assignment_3.vcxproj|C:\\RTS\\assignment_3\\ERTS_assignment_3\\ERTS_assignment_3\\EmbeddedSystemX.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{42E21D1A-2609-47FD-8230-BE59B5515682}|ERTS_assignment_3\\ERTS_assignment_3.vcxproj|solutionrelative:ERTS_assignment_3\\EmbeddedSystemX.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 347,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Singleton.cpp",
+              "DocumentMoniker": "C:\\RTS\\assignment_3\\ERTS_assignment_3\\ERTS_assignment_3\\Singleton.cpp",
+              "RelativeDocumentMoniker": "ERTS_assignment_3\\Singleton.cpp",
+              "ToolTip": "C:\\RTS\\assignment_3\\ERTS_assignment_3\\ERTS_assignment_3\\Singleton.cpp",
+              "RelativeToolTip": "ERTS_assignment_3\\Singleton.cpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-11-21T12:58:15.153Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "PowerOnSelfTest.cpp",
+              "DocumentMoniker": "C:\\RTS\\assignment_3\\ERTS_assignment_3\\ERTS_assignment_3\\PowerOnSelfTest.cpp",
+              "RelativeDocumentMoniker": "ERTS_assignment_3\\PowerOnSelfTest.cpp",
+              "ToolTip": "C:\\RTS\\assignment_3\\ERTS_assignment_3\\ERTS_assignment_3\\PowerOnSelfTest.cpp",
+              "RelativeToolTip": "ERTS_assignment_3\\PowerOnSelfTest.cpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-11-21T12:51:34.463Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Main.cpp",
+              "DocumentMoniker": "C:\\RTS\\assignment_3\\ERTS_assignment_3\\ERTS_assignment_3\\Main.cpp",
+              "RelativeDocumentMoniker": "ERTS_assignment_3\\Main.cpp",
+              "ToolTip": "C:\\RTS\\assignment_3\\ERTS_assignment_3\\ERTS_assignment_3\\Main.cpp",
+              "RelativeToolTip": "ERTS_assignment_3\\Main.cpp",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAwBgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-11-21T12:03:40.637Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Singleton.h",
+              "DocumentMoniker": "C:\\RTS\\assignment_3\\ERTS_assignment_3\\ERTS_assignment_3\\Singleton.h",
+              "RelativeDocumentMoniker": "ERTS_assignment_3\\Singleton.h",
+              "ToolTip": "C:\\RTS\\assignment_3\\ERTS_assignment_3\\ERTS_assignment_3\\Singleton.h",
+              "RelativeToolTip": "ERTS_assignment_3\\Singleton.h",
+              "ViewState": "AgIAABIAAAAAAAAAAAAAABAAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-11-21T12:09:26.368Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "PowerOnSelfTest.h",
+              "DocumentMoniker": "C:\\RTS\\assignment_3\\ERTS_assignment_3\\ERTS_assignment_3\\PowerOnSelfTest.h",
+              "RelativeDocumentMoniker": "ERTS_assignment_3\\PowerOnSelfTest.h",
+              "ToolTip": "C:\\RTS\\assignment_3\\ERTS_assignment_3\\ERTS_assignment_3\\PowerOnSelfTest.h",
+              "RelativeToolTip": "ERTS_assignment_3\\PowerOnSelfTest.h",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-11-21T12:44:26.603Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "EmbeddedSystemX.h",
+              "DocumentMoniker": "C:\\RTS\\assignment_3\\ERTS_assignment_3\\ERTS_assignment_3\\EmbeddedSystemX.h",
+              "RelativeDocumentMoniker": "ERTS_assignment_3\\EmbeddedSystemX.h",
+              "ToolTip": "C:\\RTS\\assignment_3\\ERTS_assignment_3\\ERTS_assignment_3\\EmbeddedSystemX.h",
+              "RelativeToolTip": "ERTS_assignment_3\\EmbeddedSystemX.h",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAACAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-11-21T12:06:34.346Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "EmbeddedSystemX.cpp",
+              "DocumentMoniker": "C:\\RTS\\assignment_3\\ERTS_assignment_3\\ERTS_assignment_3\\EmbeddedSystemX.cpp",
+              "RelativeDocumentMoniker": "ERTS_assignment_3\\EmbeddedSystemX.cpp",
+              "ToolTip": "C:\\RTS\\assignment_3\\ERTS_assignment_3\\ERTS_assignment_3\\EmbeddedSystemX.cpp",
+              "RelativeToolTip": "ERTS_assignment_3\\EmbeddedSystemX.cpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-11-21T12:07:15.84Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
