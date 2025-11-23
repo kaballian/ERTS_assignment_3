@@ -429,16 +429,13 @@ State* Operational::handleEvent(StateMachine& sm, Event e)
 {
     switch (e)
     {
-    case Event::ready:
-        // std::cout << " device is operational" << std::endl;
-        return Singleton<Ready>::Instance();
-        break;
 
     case Event::Restart:
         return Singleton<PowerOnSelfTest>::Instance();
         break;
     
     default:
+        opFsm.dispatch(e);
         return this;
     }
 }
@@ -483,7 +480,7 @@ int PowerOnSelfTest::systemSelfTest() {
 }
 
 
-//OPERATIONAL INNER FSM IMPLEMENTATION
+//OPERATIONAL INNER FSM IMPLEMENTATION_____________________________________
     //THESE CLASSES ARE STILL PART OF EVENT ENUM, BUT ARE MAINTAINED BY opFsm
     //READY
     void Ready::onEntry(StateMachine& sm) {
@@ -649,5 +646,14 @@ OPERATIONAL SUPERSTATE
 RESTART IN READY CLASS NEEDS TO BE IMPLEMENTED; so THAT SUSPENDED AND 
 REALTIMELOOP CAN CALL IT
 
+23:51
+    INNER FSM IS IMPLEMENTED, NOT TESTED
+    program executes, however gets stuck in inner FSM loop. this is okay fow now
+
+    next is creating an iteration limit, afterwards defined what configuration is
+
+    then create the backwards transition to outer FSM.
+
+    lastly create the active object pattern.
 
 */
