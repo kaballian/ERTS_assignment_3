@@ -81,10 +81,10 @@ public:
 
 };
 
-inline std::ostream& operator<<(std::ostream& os, const StateMachine& sm)
-{
+// inline std::ostream& operator<<(std::ostream& os, const StateMachine& sm)
+// {
     
-}
+// }
 
 
 inline std::ostream& operator<<(std::ostream& os, const Event& e)
@@ -377,6 +377,7 @@ State* Failure::handleEvent(StateMachine& sm, Event e)
     
 
     default:
+        std::cout << "invalid state request" << std::endl;
         return this;
     }
     return this;
@@ -406,6 +407,7 @@ State* Initializing::handleEvent(StateMachine& sm, Event e)
         return Singleton<Operational>::Instance();
         break;
     default:
+        std::cout << "invalid state request" << std::endl;
         return this;
     }
     return this;
@@ -445,6 +447,7 @@ State* Operational::handleEvent(StateMachine& sm, Event e)
         break;
     
     default:
+        
         opFsm.dispatch(e);
         return this;
     }
@@ -479,6 +482,7 @@ State* PowerOnSelfTest::handleEvent(StateMachine& sm, Event e)
 
     
     default:
+        std::cout << "invalid state request" << std::endl;
         return this;
     }
 }
@@ -512,6 +516,7 @@ int PowerOnSelfTest::systemSelfTest() {
         case Event::Run:
             return Singleton<RealTimeLoop>::Instance();
         default:
+            std::cout << "invalid state request" << std::endl;
             return this;
             break;
         }
@@ -536,6 +541,7 @@ int PowerOnSelfTest::systemSelfTest() {
             return Singleton<Ready>::Instance();
             break;
         default:
+            std::cout << "invalid state request" << std::endl;
             return this;
             break;
         }
@@ -566,6 +572,7 @@ int PowerOnSelfTest::systemSelfTest() {
             break;
         
         default:
+            std::cout << "invalid state request" << std::endl;
             return this;
             break;
         }
@@ -589,7 +596,11 @@ int PowerOnSelfTest::systemSelfTest() {
             return Singleton<Ready>::Instance();
             break;
         
+        case Event::Suspend:
+            return Singleton<Suspended>::Instance();
+            break;
         default:
+            std::cout << "invalid state request" << std::endl;
             return this;
             break;
         }
@@ -628,6 +639,18 @@ private:
     StateMachine sm;
 };
 
+void printMenu()
+{
+    
+    std::cout << "1 - configuration " << std::endl;
+    std::cout << "2 - end configuration " << std::endl;
+    std::cout << "3 - start " << std::endl;
+    std::cout << "4 - stop" << std::endl;
+    std::cout << "5 - suspend" << std::endl;
+    std::cout << "6 - resume"<< std::endl;
+    std::cout << "7 - restart"<< std::endl;
+    std::cout << "8 - exit"<< std::endl;
+}
 
 int main(void)
 {
@@ -639,23 +662,16 @@ int main(void)
 
     // StateMachine sm(Singleton<PowerOnSelfTest>::Instance());
     EmbeddedSystemX system;
-
-
     std::cout << "System is operational:" << std::endl;
-    std::cout << "1 - configuration " << std::endl;
-    std::cout << "2 - end configuration " << std::endl;
-    std::cout << "3 - start " << std::endl;
-    std::cout << "4 - stop" << std::endl;
-    std::cout << "5 - suspend" << std::endl;
-    std::cout << "6 - resume"<< std::endl;
-    std::cout << "7 - restart"<< std::endl;
-    std::cout << "8 - exit"<< std::endl;
+
+    
     
     
     int cmd{};
     
     while(true)
-    {
+    {   
+        printMenu();
         std::cout << ">";
         if(!(std::cin>> cmd))
             break;
