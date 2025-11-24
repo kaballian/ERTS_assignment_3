@@ -81,12 +81,17 @@ public:
 
 };
 
+inline std::ostream& operator<<(std::ostream& os, const StateMachine& sm)
+{
+    
+}
+
 
 inline std::ostream& operator<<(std::ostream& os, const Event& e)
 {
     switch (e)
     {
-    case Event::Initial:                    return os <<"Event:: Initial";
+    case Event::Initial:                    return os <<"Event::Initial";
 	case Event::SelfTestOk:                 return os <<"Event::SelfTestOk";
 	case Event::SelfTestFailed:             return os <<"Event::SelfTestFailed";
 	case Event::Error:                      return os <<"Event::Error";
@@ -726,6 +731,7 @@ REALTIMELOOP CAN CALL IT
     (check)
 
     -make the current state options for any given state visual
-
+        - implement ostream operator<< for statemachine
+        so that it prints the current state.
 
 */
