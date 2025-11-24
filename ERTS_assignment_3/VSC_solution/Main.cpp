@@ -2,6 +2,8 @@
 #include <cstdlib>
 #include <random>
 #include <ctime>
+#include <thread>
+#include <chrono>
 
 template<typename T>
 class Singleton
@@ -48,6 +50,7 @@ enum class Event
     Resume,
     Start,
     Run,
+    Suspend,
 
 };
 
@@ -91,13 +94,13 @@ inline std::ostream& operator<<(std::ostream& os, const Event& e)
 	case Event::Restart:                    return os <<"Event::Restart";
 	case Event::Exit:                       return os <<"Event::Exit";
     case Event::ready:                      return os <<"Event::Ready";
-    case Event::Configure:                  return os << "Event::Configuree";
-    case Event::ConfigurationEnded:         return os << "Event::ConfigurationEnded";
-    case Event::Stop:                       return os << "Event::Stop";
-    case Event::Resume:                     return os << "Event::Resume";
-    case Event::Start:                      return os << "Event::Start";
-    case Event::Run:                        return os << "Event::Run";
-
+    case Event::Configure:                  return os <<"Event::Configure";
+    case Event::ConfigurationEnded:         return os <<"Event::ConfigurationEnded";
+    case Event::Stop:                       return os <<"Event::Stop";
+    case Event::Resume:                     return os <<"Event::Resume";
+    case Event::Start:                      return os <<"Event::Start";
+    case Event::Run:                        return os <<"Event::Run";
+    case Event::Suspend:                    return os <<"Event::Suspend";
     default:                                return os <<"Event::<UNKNOWN";
     }
 }
@@ -126,7 +129,7 @@ public:
 		{
 
 			//use of this
-			//this -> pointer to the 
+			//this -> pointer to the object itself
 			//*this -> reference to the statemachine
 			current->onExit(*this);
 			// delete current;  //this might be a fix to the segmentation fault
@@ -137,6 +140,8 @@ public:
 			}
 		} //a condition to check if next and current is the same can be set here. 
         // else the SM will set the end of execution here.
+        //exeuction delay here
+        // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	}
 };
 
@@ -485,7 +490,7 @@ int PowerOnSelfTest::systemSelfTest() {
     //READY
     void Ready::onEntry(StateMachine& sm) {
         std::cout<<"[FUNC]:[onENTRY]:Ready" << std::endl;
-        sm.dispatch(Event::Configure);
+        // sm.dispatch(Event::Configure);
     }
     void Ready::onExit(StateMachine& sm)
     {
@@ -512,7 +517,7 @@ int PowerOnSelfTest::systemSelfTest() {
     {
         std::cout<<"[FUNC]:[onENTRY]:configuration" << std::endl;
         readConfigurationInfo();
-        sm.dispatch(Event::ConfigurationEnded);
+        // sm.dispatch(Event::ConfigurationEnded);
     }
     void Configuration::onExit(StateMachine& sm)
     {
@@ -541,7 +546,7 @@ int PowerOnSelfTest::systemSelfTest() {
     void Suspended::onEntry(StateMachine& sm)
     {
         std::cout<<"[FUNC]:[onENTRY]:Suspended" << std::endl;
-        sm.dispatch(Event::Resume);
+        // sm.dispatch(Event::Resume);
     } 
     void Suspended::onExit(StateMachine& sm)
     {
@@ -565,7 +570,7 @@ int PowerOnSelfTest::systemSelfTest() {
     void RealTimeLoop::onEntry(StateMachine& sm) 
     {
         std::cout<<"[FUNC]:[onENTRY]:RealTimeLoop" << std::endl;
-        sm.dispatch(Event::Stop);
+        // sm.dispatch(Event::Stop);
     }
     void RealTimeLoop::onExit(StateMachine& sm) 
     {
@@ -611,7 +616,8 @@ public:
     void Stop()                     {sm.dispatch(Event::Stop);}
     void Resume()                   {sm.dispatch(Event::Resume);}                   
     void Start()                    {sm.dispatch(Event::Start);}                  
-    void Run()                      {sm.dispatch(Event::Run);}                
+    void Run()                      {sm.dispatch(Event::Run);}   
+    void Suspend()                  {sm.dispatch(Event::Suspend);}             
 
 private:
     StateMachine sm;
@@ -629,6 +635,56 @@ int main(void)
     // StateMachine sm(Singleton<PowerOnSelfTest>::Instance());
     EmbeddedSystemX system;
 
+
+    std::cout << "System is operational:" << std::endl;
+    std::cout << "1 - configuration " << std::endl;
+    std::cout << "2 - end configuration " << std::endl;
+    std::cout << "3 - start " << std::endl;
+    std::cout << "4 - stop" << std::endl;
+    std::cout << "5 - suspend" << std::endl;
+    std::cout << "6 - resume"<< std::endl;
+    std::cout << "7 - restart"<< std::endl;
+    std::cout << "8 - exit"<< std::endl;
+    
+    
+    int cmd{};
+    
+    while(true)
+    {
+        std::cout << ">";
+        if(!(std::cin>> cmd))
+            break;
+            
+        switch (cmd)
+        {
+        case 1: 
+            system.Configure();
+            break;
+        case 2:
+            system.ConfigurationEnded();
+            break;
+        case 3:
+            system.Start();
+            break;
+        case 4:
+            system.Stop();
+            break;
+        case 5:
+            system.Suspend();
+            break;
+        case 6:
+            system.Resume();
+            break;
+        case 7:
+            system.Restart(); 
+            break;
+        case 8:
+            system.Exit();
+            break;
+        default:
+            break;
+        }
+    }
     return 1;
 }
 
@@ -646,14 +702,30 @@ OPERATIONAL SUPERSTATE
 RESTART IN READY CLASS NEEDS TO BE IMPLEMENTED; so THAT SUSPENDED AND 
 REALTIMELOOP CAN CALL IT
 
-23:51
+23-11-25_23:51
     INNER FSM IS IMPLEMENTED, NOT TESTED
-    program executes, however gets stuck in inner FSM loop. this is okay fow now
+    program executes, however gets stuck in inner FSM loop. this is okay fow now[done]
+    
 
     next is creating an iteration limit, afterwards defined what configuration is
 
     then create the backwards transition to outer FSM.
 
     lastly create the active object pattern.
+
+
+24-11-25_10:29
+    add user command sequence to inner state (requires removal of automatic dispatch in every inner states
+    onEntry())
+
+    - solution is as above, remove the automatic dispatch, replace them with 
+    the API calls to embeddedsysx, since theyre all defined.
+    this now drives the changes.
+    this should work, as long as the state* eventhandler in every class
+    is designed to move the state forward and return the correct object. 
+    (check)
+
+    -make the current state options for any given state visual
+
 
 */
