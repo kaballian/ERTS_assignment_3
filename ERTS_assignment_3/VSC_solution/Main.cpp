@@ -750,4 +750,34 @@ REALTIMELOOP CAN CALL IT
         - implement ostream operator<< for statemachine
         so that it prints the current state.
 
+25-11-25_20:43  (jeg var syg i dag, bær over med mig)
+    Active object seems to give meaning now
+
+    When we enter the State "RealTimeLoop" this a state in the operational machine, however we must
+    discern from "straight" state changes to future based state changes.  
+    The core idea is now that the events chModeN which drives the changes are now delivered by the 
+    Active object. The whole "thing" inside RealTimeLoop is a FSM in it self however the changes
+    are delivered by the active object pattern, meaning that we the client, looking into RealTimeloop(RLT)
+    are requesting state changes to the machine inside RTL, but we are promised those changes, thus
+    they might not happen instantaneously.
+
+    An important question to raises here is, logically the state requests are sequential, looking
+    at the diagram only Mode3 can be the next state after Mode2, however that is not the purpose of the
+    active object - "Eeven if the state machien only allows valid transitions, it does NOT mean that the
+    client cannot issues invalid or redudant requests".
+
+    ex:
+    state = mode1
+
+    client requests
+    chMode2 (valid)
+    chMode2 (invalid)
+    chMode3 (invalid)
+    chMode1 (invalid)
+    
+
+
+    also it is important to note, we request events, not states. 
+    Because the statemachine itself decides which states it wants to go to based on the received events.
+    
 */
