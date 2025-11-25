@@ -4,6 +4,10 @@
 #include <ctime>
 #include <thread>
 #include <chrono>
+#include <future>
+#include <condition_variable>
+#include <mutex>
+#include <queue>
 
 template<typename T>
 class Singleton
@@ -321,6 +325,7 @@ private:
     Suspended& operator=(const Suspended&) = delete;
 };
 
+//INCLUDES ACTIVE OBJECT 
 class RealTimeLoop : public State
 {
     friend class Singleton<RealTimeLoop>;
@@ -329,14 +334,28 @@ public:
     void onExit(StateMachine& sm) override;
     State* handleEvent(StateMachine &sm, Event e) override;
 
+    // //AO interfaces futures
+    // std::future<void> chMode1();
+    // std::future<void> chMode2();
+    // std::future<void> chMode3();
+
+    // //handlers for AO 
+    // void handleChMode1();
+    // void handleChMode2();
+    // void handleChMode3();
+
 private:
     RealTimeLoop() = default;
     ~RealTimeLoop() override = default;
 
     RealTimeLoop(const RealTimeLoop&) = delete;
     RealTimeLoop& operator=(const RealTimeLoop&) = delete;
-    
 
+    //this could potentially be a nested statemachine aswell
+    // enum class Mode{Mode1, Mode2, Mode3};
+    // Mode currentMode = Mode::Mode1; //initial mode/state
+    
+    
 };
 
 
@@ -607,7 +626,153 @@ int PowerOnSelfTest::systemSelfTest() {
     }
 
 
-// END OF IMPLEMENTATION
+// END OF IMPLEMENTATION - INNER
+// ACTIVE OBJECT declarations
+//REAL TIME LOOP SERVANT
+class RTL_Servant {
+public:
+    enum class Mode {Mode1, Mode2, Mode3};
+    RTL_Servant() : mode(Mode::Mode1) {/*sets initial mode to mode 1*/}
+
+    void chMode1_impl() {
+        mode = Mode::Mode1;
+        std::cout << "[RTL_servant]:switched to mode 1" << std::endl;
+    }
+    void chMode2_impl() {
+        mode = Mode::Mode2;
+        std::cout << "[RTL_servant]:switched to mode 2" << std::endl;
+    }
+    void chMode3_impl() {
+        mode = Mode::Mode3;
+        std::cout << "[RTL_servant]:switched to mode 3" << std::endl;
+    }
+
+    Mode currentMode() const {return mode;}
+
+private:
+    Mode mode;
+};
+
+//REAL TIME LOOP REQUEST
+class RTL_Request
+{
+public:
+    virtual bool can_run() const {return true;}
+    virtual void call() = 0; //pure virual, must be overridden
+    virtual ~RTL_Request() = default;
+};
+
+// each concrete request owns a promise
+//REQUEST FUNCTIONS
+class ChMode1Req : public RTL_Request{
+public:
+    ChMode1Req(RTL_Servant& s, std::promise<void> p)
+     : s(s), promise(std::move(p))
+    {} 
+
+    void call() override {
+        s.chMode1_impl();
+        promise.set_value();
+    }
+
+private:
+    RTL_Servant& s;
+    std::promise<void> promise;
+};
+class ChMode2Req : public RTL_Request{
+public:
+    ChMode2Req(RTL_Servant& s, std::promise<void> p)
+     : s(s), promise(std::move(p))
+    {} 
+
+    void call() override {
+        s.chMode2_impl();
+        promise.set_value();
+    }
+
+private:
+    RTL_Servant& s;
+    std::promise<void> promise;
+};
+class ChMode3Req : public RTL_Request{
+public:
+    ChMode3Req(RTL_Servant& s, std::promise<void> p)
+     : s(s), promise(std::move(p))  /*use of move semantics to transfer pointer*/
+    {} 
+
+    void call() override {
+        s.chMode3_impl();
+        promise.set_value();
+    }
+
+private:
+    RTL_Servant& s;
+    std::promise<void> promise;
+};
+
+//ACTIVATION LIST / QUEUE
+
+class RTL_ActivationQueue
+{
+public:
+    void insert(std::unique_ptr<RTL_Request> req)
+    {
+        std::lock_guard<std::mutex> lock(mtex);
+        que.push(std::move(req));
+        cv.notify_one();
+    }
+    //this might be overkill
+    std::unique_ptr<RTL_Request> remove()
+    {
+        //create unique pointer of RTL_requests
+        std::unique_ptr<RTL_Request> req;
+
+        //this might be super overkill
+        //acquire the lock so the que can be used safely, no one else can push/pop
+        std::unique_lock<std::mutex> lock(mtex);
+
+        //make the thread sleep until either request is available or system is stopping
+        //capture everything by reference, q and running
+        cv.wait(lock, [&]{return !que.empty() || !running; });
+        //if queue is not empty. undefined behaviour if empty queue is pop'd 
+        if(!que.empty())
+        {
+            //take ownership of the first object in the queue 
+            req = std::move(que.front());
+            //and pop it, remove the first element;
+            que.pop();
+        }
+        return req;
+    }
+
+    void set_running(bool status)
+    {   
+        //take the lock
+        std::lock_guard<std::mutex> lock(mtex);
+        //indicate we are working
+        running = status;
+        cv.notify_all();
+    }
+
+private:
+    std::mutex mtex;
+    std::queue<std::unique_ptr<RTL_Request>> que; //queue of type unique pointers of type RTL requests
+    std::condition_variable cv; //avoid needles polling, uses notify one on the mutex to signal when ready
+    bool running = true;
+};
+
+class RTL_Scheduler{
+public:
+    RTL_Scheduler() = default;
+    
+
+};
+
+
+// END OF ACTIVE OBJECT
+
+
+
 
 
 
@@ -637,6 +802,9 @@ public:
 
 private:
     StateMachine sm;
+    // int VersionNO = 1
+    // std::string = "Ver1.1A"
+
 };
 
 void printMenu()
@@ -779,5 +947,9 @@ REALTIMELOOP CAN CALL IT
 
     also it is important to note, we request events, not states. 
     Because the statemachine itself decides which states it wants to go to based on the received events.
-    
+
+
+     - In REALTIMELOOP declaration, consider if mode should be a statemachine instead
+     of a enum class
+
 */
