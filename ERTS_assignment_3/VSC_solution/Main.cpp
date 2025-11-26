@@ -514,7 +514,7 @@ int PowerOnSelfTest::systemSelfTest() {
 
 
 //OPERATIONAL INNER FSM IMPLEMENTATION_____________________________________
-    //THESE CLASSES ARE STILL PART OF EVENT ENUM, BUT ARE MAINTAINED BY opFsm
+    //THESE CLASSES ARE STILL PART OF EVENT ENUM, BUT ARE MAINTAINED BY opFsm (operational finite statemachine)
     //READY
     void Ready::onEntry(StateMachine& sm) {
         std::cout<<"[FUNC]:[onENTRY]:Ready" << std::endl;
@@ -628,7 +628,10 @@ int PowerOnSelfTest::systemSelfTest() {
 
 // END OF IMPLEMENTATION - INNER
 // ACTIVE OBJECT declarations
-//REAL TIME LOOP SERVANT
+//must containt (from client) -> (proxy)->scheduler-activation list-method request->servant 
+//REAL TIME LOOP SERVANT  
+
+
 class RTL_Servant {
 public:
     enum class Mode {Mode1, Mode2, Mode3};
@@ -761,13 +764,60 @@ private:
     bool running = true;
 };
 
+//___________________SCHEDULER____________________
 class RTL_Scheduler{
 public:
-    RTL_Scheduler() = default;
+    RTL_Scheduler() = default; 
+
+    void start()
+    {
+        //start the queue
+
+        //spin up the threads with work from the queue
+
+        //while loop, which keeps churning as long as the queue is not empty
+
+
+    }
+    
+    void stop()
+    {
+        //set the running flag to false
+        // join all threads if they are done working
+    }
+
+
+    void enqueue(std::unique_ptr<RTL_Request> req) 
+    {
+        //add/move work to the queue using insert.
+    }
+
+private:
+    RTL_ActivationQueue queue;
+    std::thread worker;
     
 
 };
 
+//___________________PROXY______________________
+//the proxy must only expose the three methods required by the client
+// class RTL_Proxy{
+// public:
+//     RTL_Proxy(
+//         RTL_Servant& servant,
+//         RTL_Scheduler& scheduler)
+//         : serv(servant), sched(scheduler) {}
+    
+//         std::future
+
+// private:
+//     RTL_Servant& serv;
+//     RTL_Scheduler& sched;
+
+
+
+
+// };
 
 // END OF ACTIVE OBJECT
 
@@ -952,4 +1002,7 @@ REALTIMELOOP CAN CALL IT
      - In REALTIMELOOP declaration, consider if mode should be a statemachine instead
      of a enum class
 
+
+
+26-11-25_12:24
 */
