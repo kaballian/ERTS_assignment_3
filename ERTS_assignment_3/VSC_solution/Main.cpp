@@ -660,7 +660,11 @@ private:
 class RTL_Request
 {
 public:
-    virtual bool can_run() const {return true;}
+    /*
+    there is dependencies, no preconditions, nothing is holding it back
+    thus execution be done immidiately, FIFO style.
+    */
+    virtual bool can_run() const {return true;} 
     virtual void call() = 0; //pure virual, must be overridden
     virtual ~RTL_Request() = default;
 };
@@ -675,6 +679,7 @@ public:
 
     void call() override {
         s.chMode1_impl();
+        //though the promise is <void> it still sets the shared "thread" state to "ready"
         promise.set_value();
     }
 
@@ -750,7 +755,12 @@ public:
 
     void set_running(bool status)
     {   
-        //take the lock
+        //take the lock and lock it now, then automatically unlock it when the scope ends
+        /*
+        we create a temporary object named lock, that takes types of std::mutex
+        the invoked constructor locks the mutex
+        when the lock goes out of scope (it leaves this function body) the destructor
+        is automatically invoked and the resources is released. */
         std::lock_guard<std::mutex> lock(mtex);
         //indicate we are working
         running = status;
@@ -771,53 +781,103 @@ public:
 
     void start()
     {
-        //start the queue
-
+        /*
+        start the queue
+        set_running contains a lock that acquires the mutex
+        "i own the mutex now, no other thread may pass"
+        */
+        queue.set_running(true);
         //spin up the threads with work from the queue
-
-        //while loop, which keeps churning as long as the queue is not empty
-
-
+        /*
+        lambda invocation
+        [this] gives the lambda access to fields/functions from RTL_ActivationQueue
+        the while, makes the thread execute as long as the object is alive. */
+        worker = std::thread([this](){
+            while(true)
+            {
+                //take the request from the queue
+                auto req = queue.remove();
+                if(!req) //if the queue is empty
+                {
+                    break;
+                }
+                if(req->can_run()) //if the request can be ran, ie. work can be done
+                {   
+                    //INVOCATION
+                    req->call();
+                }
+                
+            }
+        });
     }
     
     void stop()
     {
         //set the running flag to false
+        queue.set_running(false);
         // join all threads if they are done working
+        if(worker.joinable())
+        {
+            //joins the thread, terminates the processing.
+            worker.join();
+        }
     }
 
 
     void enqueue(std::unique_ptr<RTL_Request> req) 
     {
-        //add/move work to the queue using insert.
+        //add/move work to the queue using insert.¨
+        queue.insert(std::move(req));
     }
 
 private:
     RTL_ActivationQueue queue;
     std::thread worker;
     
-
 };
+
+
 
 //___________________PROXY______________________
 //the proxy must only expose the three methods required by the client
-// class RTL_Proxy{
-// public:
-//     RTL_Proxy(
-//         RTL_Servant& servant,
-//         RTL_Scheduler& scheduler)
-//         : serv(servant), sched(scheduler) {}
+class RTL_Proxy{
+public:
+    RTL_Proxy(
+        RTL_Servant& servant,
+        RTL_Scheduler& scheduler)
+        : serv(servant), sched(scheduler) {}
     
-//         std::future
+    //templated type
+    template<typename RequestT>
+    std::future<void> makeModeRsq() { //function returns a std::future pointer 
+        std::promise<void> prom; //declare a std::promise
+        auto fut = prom.get_future(); //bridge the future to the promise
+        /*
+        in one foul swoop, allocate memory for RequestT type, with give arguments
+        and wraps the object in a std::unique_ptr, without the use of new
+        */
+        auto req = std::make_unique<RequestT>(serv, std::move(prom)); 
+        //queue the request through the scheduler.
+        sched.enqueue(std::move(req));
 
-// private:
-//     RTL_Servant& serv;
-//     RTL_Scheduler& sched;
+        return fut;
+    }
+
+    //use template to create functions
+    std::future<void> chMode1() { return makeModeRsq<ChMode1Req>(); } 
+    std::future<void> chMode2() { return makeModeRsq<ChMode2Req>(); } 
+    std::future<void> chMode3() { return makeModeRsq<ChMode3Req>(); } 
+
+
+
+private:
+    RTL_Servant& serv;
+    RTL_Scheduler& sched;
 
 
 
 
-// };
+};
 
 // END OF ACTIVE OBJECT
 
@@ -853,7 +913,7 @@ public:
 private:
     StateMachine sm;
     // int VersionNO = 1
-    // std::string = "Ver1.1A"
+    // std::string = "Automata:Ver1.1A"
 
 };
 
@@ -1005,4 +1065,10 @@ REALTIMELOOP CAN CALL IT
 
 
 26-11-25_12:24
+    specified scheduler, explained the code to ewoud and jakob
+
+
+26-11-25_23:30~~   
+    scheduler implemented, moving to client implementation
+    added various comments.
 */
