@@ -552,6 +552,7 @@ private:
     bool restartCondition = false;
     StateMachine opFsm; //internal FSM, is invoked when initialized event is called
     std::optional<std::future<void>> futureMode;
+    std::vector<std::future<void>> pendingFutures;
     ModeConfig configParams;  
 };
 
@@ -788,11 +789,40 @@ State* Operational::handleEvent(StateMachine& sm, Event e)
         return this; //were not changing state, only reading the future, like a freaking seer
         
     }
+    case Event::Start: 
+    {
+        //transition of inner statemachine to RTL, created in READY eventhandler
+        opFsm.dispatch(Event::Run);
+        //ensure we are in RTL
+        State* curr = opFsm.getCurrentState();
+        if(auto* rtl = dynamic_cast<RealTimeLoop*>(curr))
+        {
+            RTL_Proxy& proxy = rtl->getProxy();
+            for(auto mode : configParams.req_work)
+            {
+                switch (mode)
+                {
+                case RTL_Servant::Mode::Mode1:
+                    pendingFutures.push_back(proxy.chMode1());
+                    break;
+                case RTL_Servant::Mode::Mode2:
+                    pendingFutures.push_back(proxy.chMode2());
+                    break;
+                case RTL_Servant::Mode::Mode3:
+                    pendingFutures.push_back(proxy.chMode3());
+                    break;
+                }
+            }
+        configParams.req_work.clear(); //empties the vector
+        }
+        return this;
+    }
 
     case  Event::PrintReqQueue:
+    {
         printReqWork();
         return this;
-
+    }
     //this is doing the heavy lifting
     default:
         opFsm.dispatch(e); //any changes to inner statemachine is done through this dispatch!
@@ -812,7 +842,7 @@ void Operational::printReqWork()
     for(size_t i = 0; i < configParams.req_work.size(); ++i)
     {
         auto Mode = configParams.req_work[i];
-        std::cout << i << ": ";
+        std::cout << i + 1 << ": ";
         
         switch (Mode)
         {
@@ -889,7 +919,8 @@ int PowerOnSelfTest::systemSelfTest() {
         case Event::Configure:
             return Singleton<Configuration>::Instance();
             break;
-        case Event::Start:
+        
+        
         case Event::Run:
             return Singleton<RealTimeLoop>::Instance();
         default:
@@ -938,7 +969,7 @@ int PowerOnSelfTest::systemSelfTest() {
             std::cout << "1 - MODE1\n";
             std::cout << "2 - MODE2\n";
             std::cout << "3 - MODE3\n";
-            std::cout << "3 - end config" << std::endl;
+            std::cout << "99 - end config" << std::endl;
             if(!(std::cin>> cmd))
                 break;
             switch (cmd)
@@ -1074,6 +1105,7 @@ void printMenu()
     std::cout << "6 - resume"<< std::endl;
     std::cout << "7 - restart"<< std::endl;
     std::cout << "8 - exit"<< std::endl;
+    std::cout << "11 - print requested work queue"<< std::endl;
 }
 
 int main(void)
@@ -1287,5 +1319,11 @@ REALTIMELOOP CAN CALL IT
         including something that shows the current queue of work, before the RTS is set to work. 
         should be done in configuration.
 
-        
+
+    
+
+
+
+
+
     */
