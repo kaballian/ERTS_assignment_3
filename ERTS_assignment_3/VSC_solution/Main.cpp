@@ -60,7 +60,8 @@ enum class Event
     ChMode1,
     ChMode2,
     ChMode3,
-    WaitModeSwitch
+    WaitModeSwitch,
+    PrintReqQueue
 
 };
 
@@ -120,6 +121,7 @@ inline std::ostream& operator<<(std::ostream& os, const Event& e)
     case Event::ChMode2:                    return os <<"Event::ChMode2";
     case Event::ChMode3:                    return os <<"Event::ChMode3";
     case Event::WaitModeSwitch:             return os <<"Event::ModeSwitch";
+
     default:                                return os <<"Event::<UNKNOWN>";
     }
 }
@@ -539,7 +541,7 @@ public:
         std::vector<RTL_Servant::Mode> req_work;
     };
     ModeConfig& getConfigParams() {return configParams;}
-
+    void printReqWork();
 private:
     Operational() = default;
     ~Operational() override = default;
@@ -787,10 +789,43 @@ State* Operational::handleEvent(StateMachine& sm, Event e)
         
     }
 
+    case  Event::PrintReqQueue:
+        printReqWork();
+        return this;
+
     //this is doing the heavy lifting
     default:
         opFsm.dispatch(e); //any changes to inner statemachine is done through this dispatch!
         return this;
+    }
+    
+}
+void Operational::printReqWork()
+{
+    std::cout << "---Requested work items ---\n" << std::endl;
+    if(configParams.req_work.empty())
+    {
+        std::cout <<"(none) \n" << std::endl;
+        return;
+    }
+
+    for(size_t i = 0; i < configParams.req_work.size(); ++i)
+    {
+        auto Mode = configParams.req_work[i];
+        std::cout << i << ": ";
+        
+        switch (Mode)
+        {
+            case RTL_Servant::Mode::Mode1:
+                std::cout << "Mode1\n";
+                break;
+            case RTL_Servant::Mode::Mode2:
+                std::cout << "Mode2\n";
+                break;
+            case RTL_Servant::Mode::Mode3:
+                std::cout << "Mode3\n";
+                break;
+        }
     }
 }
 
@@ -1018,7 +1053,8 @@ public:
     void Resume()                   {sm.dispatch(Event::Resume);}                   
     void Start()                    {sm.dispatch(Event::Start);}                  
     void Run()                      {sm.dispatch(Event::Run);}   
-    void Suspend()                  {sm.dispatch(Event::Suspend);}             
+    void Suspend()                  {sm.dispatch(Event::Suspend);}
+    void printReqQueue()            {sm.dispatch(Event::PrintReqQueue);}             
 
 private:
     StateMachine sm;
@@ -1091,6 +1127,10 @@ int main(void)
             system.Exit();
             break;
         case 9:
+            
+        case 11:
+            system.printReqQueue();
+            break;
             
         default:
             break;
@@ -1239,9 +1279,13 @@ REALTIMELOOP CAN CALL IT
     if one is confused about how the inner states are translated through the statemachine in main, it
     is because the default case in operational's eventhandler is doing the heavy lifting
     and forwarding the dispatch call to the inner statemachine!
+    Essentially dealing with any event requests that the operational's own
+    eventhandler is not intended to deal with.
 
     -optional
         create a working sub menu system, that only reveals what is possible,
         including something that shows the current queue of work, before the RTS is set to work. 
         should be done in configuration.
+
+        
     */
