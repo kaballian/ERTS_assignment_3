@@ -12,7 +12,7 @@
 #include <vector>
 
 
-#define TEST_MODE //comment out to disable test mode msg
+#define TEST_MODE //comment out to disable test mode msg. Remember to build...
 #ifdef TEST_MODE  
     #define TEST_PRINT(msg) \
         do { std::cout << "[TEST]:" << msg << std::endl; }while(0)
@@ -154,8 +154,8 @@ public:
 	void dispatch(Event e)
 	{
 		/*sequence explained in State.h*/
-        std::cout << "[DISPATCH]:["<< e << "]" << std::endl;
-        // TEST_PRINT("[DISPATCH]:["<< e << "]");
+        // std::cout << "[DISPATCH]:["<< e << "]" << std::endl;
+        TEST_PRINT("[DISPATCH]:["<< e << "]");
 		State* next = current->handleEvent(*this,e); 
 		if (next != current) 
 		{
@@ -718,14 +718,15 @@ void Failure::display(int ErrorNo) { std::cout << "Failed: error#:" << ErrorNo <
 //INITIALIZING
 void Initializing::onEntry(StateMachine& sm) 
 {
-    std::cout << "[FUNC]:[onENTRY]:Initializing" << std::endl;
+    // std::cout << "[FUNC]:[onENTRY]:Initializing" << std::endl;
+    TEST_PRINT("[FUNC]:[onENTRY]:Initializing");
     startInitializing();
     sm.dispatch(Event::Initialized);
 }
 void Initializing::onExit(StateMachine& sm) 
 {
-    std::cout << "[FUNC]:[onExit]:Initializing" << std::endl;
-
+    // std::cout << "[FUNC]:[onExit]:Initializing" << std::endl;
+    TEST_PRINT("[FUNC]:[onExit]:Initializing");
 }
 State* Initializing::handleEvent(StateMachine& sm, Event e) 
 {
@@ -742,7 +743,7 @@ State* Initializing::handleEvent(StateMachine& sm, Event e)
 }
 
 void Initializing::startInitializing() {
-    std::cout << "starting initialization ..." << std::endl;
+    // std::cout << "starting initialization ..." << std::endl;
     std::cout << "initialized." << std::endl;
 }
 
@@ -750,8 +751,8 @@ void Initializing::startInitializing() {
 //OPERATIONAL_______________________________________________________________
 void Operational::onEntry(StateMachine& sm) 
 {
-    std::cout << "[FUNC]:[onENTRY]:Operational" << std::endl;
-    
+    // std::cout << "[FUNC]:[onENTRY]:Operational" << std::endl;
+    TEST_PRINT("[FUNC]:[onENTRY]:Operational");
     if(restartCondition)
     {
         sm.dispatch(Event::Restart);
@@ -763,7 +764,8 @@ void Operational::onEntry(StateMachine& sm)
 
 void Operational::onExit(StateMachine& sm) 
 {
-    std::cout << "[FUNC]:[onEXIT]:Operational" << std::endl;
+    // std::cout << "[FUNC]:[onEXIT]:Operational" << std::endl;
+    TEST_PRINT("[FUNC]:[onEXIT]:Operational");
 }
 State* Operational::handleEvent(StateMachine& sm, Event e) 
 {
@@ -774,7 +776,7 @@ State* Operational::handleEvent(StateMachine& sm, Event e)
         return Singleton<PowerOnSelfTest>::Instance();
         break;
 
-    //these requests might not even work.
+    //these requests might not even work. - should probably be deleted.
     case Event::ChMode1:
     case Event::ChMode2:
     case Event::ChMode3:
@@ -887,7 +889,8 @@ void Operational::printReqWork()
 
 void PowerOnSelfTest::onEntry(StateMachine& sm) 
 {
-    std::cout << "[FUNC]:[onENTRY]:PowerOnSelfTest" << std::endl;
+    // std::cout << "[FUNC]:[onENTRY]:PowerOnSelfTest" << std::endl;
+    TEST_PRINT("[FUNC]:[onENTRY]:PowerOnSelfTest");
     this->ErrorNo = systemSelfTest();
     sm.dispatch(ErrorNo == 0 ?
         Event::SelfTestOk :
@@ -896,7 +899,8 @@ void PowerOnSelfTest::onEntry(StateMachine& sm)
 }
 void PowerOnSelfTest::onExit(StateMachine& sm) 
 {
-    std::cout << "[FUNC]:[onEXIT]:PowerOnSelfTest" << std::endl;
+    // std::cout << "[FUNC]:[onEXIT]:PowerOnSelfTest" << std::endl;
+    TEST_PRINT("[FUNC]:[onEXIT]:PowerOnSelfTest");
 }
 State* PowerOnSelfTest::handleEvent(StateMachine& sm, Event e) 
 {
@@ -927,13 +931,14 @@ int PowerOnSelfTest::systemSelfTest() {
     //THESE CLASSES ARE STILL PART OF EVENT ENUM, BUT ARE MAINTAINED BY opFsm (operational finite statemachine)
     //READY
     void Ready::onEntry(StateMachine& sm) {
-        std::cout<<"[FUNC]:[onENTRY]:Ready" << std::endl;
-        
+        // std::cout<<"[FUNC]:[onENTRY]:Ready" << std::endl;
+        TEST_PRINT("[FUNC]:[onENTRY]:Ready");
         // sm.dispatch(Event::Configure);
     }
     void Ready::onExit(StateMachine& sm)
     {
-        std::cout <<"[FUNC]:[onEXIT]:Ready" << std::endl;
+        // std::cout <<"[FUNC]:[onEXIT]:Ready" << std::endl;
+        TEST_PRINT("[FUNC]:[onEXIT]:Ready");
     } 
     State*Ready:: handleEvent(StateMachine &sm, Event e) 
     {
@@ -956,14 +961,16 @@ int PowerOnSelfTest::systemSelfTest() {
     //CONFIGURATION
     void Configuration::onEntry(StateMachine& sm)
     {
-        std::cout<<"[FUNC]:[onENTRY]:configuration" << std::endl;
+        // std::cout<<"[FUNC]:[onENTRY]:configuration" << std::endl;
+        TEST_PRINT("[FUNC]:[onENTRY]:configuration");
         readConfigurationInfo();
         sm.dispatch(Event::ConfigurationEnded);
         
     }
     void Configuration::onExit(StateMachine& sm)
     {
-        std::cout << "[FUNC]:[onEXIT]:configuration" << std::endl;
+        // std::cout << "[FUNC]:[onEXIT]:configuration" << std::endl;
+        TEST_PRINT("[FUNC]:[onEXIT]:configuration" );
     }
     State* Configuration::handleEvent(StateMachine &sm, Event e)
     {
@@ -1019,12 +1026,14 @@ int PowerOnSelfTest::systemSelfTest() {
     //SUSPENDED
     void Suspended::onEntry(StateMachine& sm)
     {
-        std::cout<<"[FUNC]:[onENTRY]:Suspended" << std::endl;
+        // std::cout<<"[FUNC]:[onENTRY]:Suspended" << std::endl;
+        TEST_PRINT("[FUNC]:[onENTRY]:Suspended");
         // sm.dispatch(Event::Resume);
     } 
     void Suspended::onExit(StateMachine& sm)
     {
-        std::cout<<"[FUNC]:[onEXIT]:Suspended" << std::endl;
+        // std::cout<<"[FUNC]:[onEXIT]:Suspended" << std::endl;
+        TEST_PRINT("[FUNC]:[onEXIT]:Suspended");
     } 
     State* Suspended::handleEvent(StateMachine &sm, Event e)
     {
@@ -1046,14 +1055,16 @@ int PowerOnSelfTest::systemSelfTest() {
     {}
     void RealTimeLoop::onEntry(StateMachine& sm) 
     {
-        std::cout<<"[FUNC]:[onENTRY]:RealTimeLoop" << std::endl;
+        // std::cout<<"[FUNC]:[onENTRY]:RealTimeLoop" << std::endl;
+        TEST_PRINT("[FUNC]:[onENTRY]:RealTimeLoop");
         //--> when the RTS is entered, start the queue
 
         scheduler.start(); //--> when the scheduler starts, a thread is spun up -->(goto scheduler) 
     }
     void RealTimeLoop::onExit(StateMachine& sm) 
     {
-        std::cout<<"[FUNC]:[onEXIT]:RealTimeLoop" << std::endl;
+        // std::cout<<"[FUNC]:[onEXIT]:RealTimeLoop" << std::endl;
+        TEST_PRINT("[FUNC]:[onEXIT]:RealTimeLoop");
         //when we exit, stop the queue and join all active threads
         scheduler.stop();
     }
@@ -1134,7 +1145,6 @@ void printMenu()
 int main(void)
 {
 
-    std::cout << "hello world" << std::endl;
 
     //rand cast for testing purposes
     std::srand(static_cast<unsigned>(std::time(nullptr)));
@@ -1359,9 +1369,9 @@ REALTIMELOOP CAN CALL IT
 30-11-25_16.00
     TODO:
         - test the current state of the machine, ensure that the sequnce of jobs 
-        adheres to the diagram
+        adheres to the diagram (check)
 
-        - rewrite the function indicators as a sort of #ifdef testMode
+        - rewrite the function indicators as a sort of #ifdef testMode (check)
 
         - include current state in menuprintout
 
