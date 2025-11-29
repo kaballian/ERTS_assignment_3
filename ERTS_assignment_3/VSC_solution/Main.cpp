@@ -98,14 +98,16 @@ public:
 	virtual void onEntry(StateMachine& sm) {};
 
 	virtual void onExit(StateMachine& sm) {};
-	virtual ~State() = default;
+
+	virtual StateMachine* getSubstateMachine() {return nullptr;}
+    virtual std::string name() const = 0; 
+    virtual ~State() = default;
+
+
+
 
 };
 
-// inline std::ostream& operator<<(std::ostream& os, const StateMachine& sm)
-// {
-    
-// }
 
 
 inline std::ostream& operator<<(std::ostream& os, const Event& e)
@@ -177,9 +179,31 @@ public:
 	}
 
     State* getCurrentState() const{return current;}
+    std::string getStateName() const {return current ? current->name() : "<NULL>";}
+    std::string getFullStateName() const 
+    {
+        std::string res = current ? current->name() : "<NULL>" ;
+        if(auto* sub = current->getSubstateMachine())
+        {
+            res += " -> " + sub->getFullStateName();
+        }
+        return res;
+    }
 };
 
-// operator overload for =
+// operator overload for statemachine operator << 
+std::ostream& operator<<(std::ostream& os, const StateMachine& sm)
+{
+    // if(sm.getCurrentState())
+    // {
+    //     os << sm.getCurrentState()->name();
+    // }else{
+    //     os <<"<NULL>";
+    // }
+    // return os;
+
+    return os << sm.getFullStateName();
+}
 
 
 
@@ -266,6 +290,7 @@ public:
     {} 
 
     void call() override {   //--> this is where i call the servant to do the work -->(goto RTL_servant)
+        std::this_thread::sleep_for(std::chrono::seconds(2+(std::rand() % 9)));
         s.chMode1_impl();
         //though the promise is <void> it still sets the shared "thread" state to "ready"
         //--> i've returned to say i've fullfilled the promise
@@ -287,6 +312,7 @@ public:
     {} 
 
     void call() override {
+        std::this_thread::sleep_for(std::chrono::seconds(2+(std::rand() % 9)));
         s.chMode2_impl();
         promise.set_value();
     }
@@ -306,6 +332,7 @@ public:
     {} 
 
     void call() override {
+        std::this_thread::sleep_for(std::chrono::seconds(2+(std::rand() % 9)));
         s.chMode3_impl();
         promise.set_value();
     }
@@ -497,6 +524,7 @@ public:
     void onEntry(StateMachine& sm) override;
     void onExit(StateMachine& sm) override;
     State* handleEvent(StateMachine& sm, Event e) override;
+    std::string name() const override {return "PowerOnSelfTest";}
 
 private:
     PowerOnSelfTest() = default;
@@ -517,6 +545,7 @@ public:
     void onEntry(StateMachine& sm) override;
     void onExit(StateMachine& sm) override;
     State* handleEvent(StateMachine& sm, Event e) override;
+    std::string name() const override {return "Failure";}
     void incCount();
 
 private:
@@ -538,7 +567,7 @@ public:
     void onEntry(StateMachine& sm) override;
     void onExit(StateMachine& sm) override;
     State* handleEvent(StateMachine& sm, Event e) override;
-    
+    std::string name() const override {return "Initializing";}
 
 private:
     Initializing() = default;
@@ -558,11 +587,13 @@ public:
     void onEntry(StateMachine& sm) override;
     void onExit(StateMachine& sm) override;
     State* handleEvent(StateMachine& sm, Event e) override;
+    std::string name() const override {return "Operational";}
 
     struct ModeConfig{
         std::vector<RTL_Servant::Mode> req_work;
     };
     ModeConfig& getConfigParams() {return configParams;}
+    StateMachine* getSubstateMachine() override {return &opFsm;}
     void printReqWork();
 private:
     Operational() = default;
@@ -593,6 +624,7 @@ public:
     void onEntry(StateMachine& sm) override;
     void onExit(StateMachine& sm) override;
     State* handleEvent(StateMachine &sm, Event e) override;
+    std::string name() const override {return "Ready";}
 
 private:
     Ready() = default;
@@ -608,6 +640,7 @@ public:
     void onEntry(StateMachine& sm) override;
     void onExit(StateMachine& sm) override;
     State* handleEvent(StateMachine &sm, Event e) override;
+    std::string name() const override {return "Configuration";}
     void readConfigurationInfo();
 
 private:
@@ -624,6 +657,7 @@ public:
     void onEntry(StateMachine& sm) override;
     void onExit(StateMachine& sm) override;
     State* handleEvent(StateMachine &sm, Event e) override;
+    std::string name() const override {return "Suspended";}
 
 private:
     Suspended() = default;
@@ -641,11 +675,9 @@ public:
     void onEntry(StateMachine& sm) override;
     void onExit(StateMachine& sm) override;
     State* handleEvent(StateMachine &sm, Event e) override;
+    std::string name() const override {return "RealTimeLoop";}
 
-    //AO interfaces futures
-    // std::future<void> chMode1();
-    // std::future<void> chMode2();
-    // std::future<void> chMode3();
+   
 
     RTL_Proxy& getProxy() {return proxy;}
 
@@ -1119,7 +1151,9 @@ public:
     void Start()                    {sm.dispatch(Event::Start);}                  
     void Run()                      {sm.dispatch(Event::Run);}   
     void Suspend()                  {sm.dispatch(Event::Suspend);}
-    void printReqQueue()            {sm.dispatch(Event::PrintReqQueue);}             
+    void printReqQueue()            {sm.dispatch(Event::PrintReqQueue);} 
+    
+    void printCurrentState()        {std::cout <<"current state: " << sm << std::endl;}
 
 private:
     StateMachine sm;
@@ -1140,6 +1174,7 @@ void printMenu()
     std::cout << "7 - restart"<< std::endl;
     std::cout << "8 - exit"<< std::endl;
     std::cout << "11 - print requested work queue"<< std::endl;
+    std::cout << "12 - print current state" << std::endl;
 }
 
 int main(void)
@@ -1195,6 +1230,10 @@ int main(void)
             
         case 11:
             system.printReqQueue();
+            break;
+        case 12:
+            system.printCurrentState();
+            
             break;
             
         default:
@@ -1373,7 +1412,11 @@ REALTIMELOOP CAN CALL IT
 
         - rewrite the function indicators as a sort of #ifdef testMode (check)
 
-        - include current state in menuprintout
+        - include current state in menuprintout 
+            (outer check)
+            (inner check)
+
+        - implement: worker thread work delay (check)
 
         - implement: restart in operations
 
