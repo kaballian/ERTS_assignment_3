@@ -260,6 +260,10 @@ public:
         //--> i've returned to say i've fullfilled the promise
         promise.set_value();
     }
+    bool can_run() const override {
+        //check the servant to see if the current mode is Mode3, if true then this event is allowed to run
+        return s.currentMode() == RTL_Servant::Mode::Mode3;
+    }
 
 private:
     RTL_Servant& s;
@@ -275,6 +279,10 @@ public:
         s.chMode2_impl();
         promise.set_value();
     }
+    bool can_run() const override {
+        //same logic, but for new mode
+        return s.currentMode() == RTL_Servant::Mode::Mode1;
+    }
 
 private:
     RTL_Servant& s;
@@ -289,6 +297,9 @@ public:
     void call() override {
         s.chMode3_impl();
         promise.set_value();
+    }
+    bool can_run() const override {
+        return s.currentMode() == RTL_Servant::Mode::Mode2;
     }
 
 private:
@@ -752,6 +763,7 @@ State* Operational::handleEvent(StateMachine& sm, Event e)
         return Singleton<PowerOnSelfTest>::Instance();
         break;
 
+    //these requests might not even work.
     case Event::ChMode1:
     case Event::ChMode2:
     case Event::ChMode3:
@@ -1274,7 +1286,7 @@ REALTIMELOOP CAN CALL IT
     RTL_Scheduler THREAD
     | 
     | 5) remove request from queue
-    | 6) check can_run()
+    | 6) check can_run() (current mode is checked to see if transition is allowed)
     | 7) call req->call()
     v
     RTL_Request (ChMode1Req)
@@ -1321,6 +1333,15 @@ REALTIMELOOP CAN CALL IT
 
 
     
+    18:50 
+    queue system works. 
+    however, the functions does not adhere to the RTS sequence,
+    thus Mode3 and be achieved from Mode1 directly..
+    
+29-11-25_00:33
+    to solve the state issue, to enforce the allowed transitions, guards must be implemented
+    can_run() will be used for this.
+
 
 
 
