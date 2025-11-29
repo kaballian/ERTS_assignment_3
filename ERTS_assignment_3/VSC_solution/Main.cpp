@@ -11,6 +11,16 @@
 #include <optional>
 #include <vector>
 
+
+#define TEST_MODE //comment out to disable test mode msg
+#ifdef TEST_MODE  
+    #define TEST_PRINT(msg) \
+        do { std::cout << "[TEST]:" << msg << std::endl; }while(0)
+#else  
+    #define TEST_PRINT(msg) \
+        do {} while(0)
+#endif
+
 template<typename T>
 class Singleton
 {
@@ -145,6 +155,7 @@ public:
 	{
 		/*sequence explained in State.h*/
         std::cout << "[DISPATCH]:["<< e << "]" << std::endl;
+        // TEST_PRINT("[DISPATCH]:["<< e << "]");
 		State* next = current->handleEvent(*this,e); 
 		if (next != current) 
 		{
@@ -1261,7 +1272,7 @@ REALTIMELOOP CAN CALL IT
 
 
 26-11-25_12:24
-    specified scheduler, explained the code to ewoud and jakob
+    specified scheduler
 
 
 26-11-25_23:30~~   
@@ -1345,6 +1356,30 @@ REALTIMELOOP CAN CALL IT
 
 
 
+30-11-25_16.00
+    TODO:
+        - test the current state of the machine, ensure that the sequnce of jobs 
+        adheres to the diagram
 
+        - rewrite the function indicators as a sort of #ifdef testMode
+
+        - include current state in menuprintout
+
+        - implement: restart in operations
+
+        - implement: suspended
+
+        - implement: feature, when work is completed (scheduler queue is empty, return to ready)
+
+        - implement: exit function, (assert or something like that.)
+
+        - rewrite menu structure, to only allow legal actions.
+
+        - create diagram in plantUML
+
+        - look into file separation. Do this in a new project file. 
+
+        - create latex document.
+        
 
     */
