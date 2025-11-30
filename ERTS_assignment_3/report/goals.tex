@@ -1,0 +1,19 @@
+\subsection{Goals}
+
+\begin{itemize}
+    \item \textbf{GOF Singleton pattern} To ensure the correct behavior of the statemachine, the Singleton pattern 
+    must be used, it ensures that only one instance of every object class can exist at any given time.
+        
+    \item \textbf{GOF state pattern} This pattern ensures that an object changes behaviour when it changes state, 
+    but to the outside world it looks like a new object. Instead of enumeration, the state and its behaviour is 
+    encapsulated in multiple classes, where our object can delegate to the current state class. 
+    \item \textbf{Active Object pattern} The main purpose of the active object pattern, is it separate 
+    method invocation from method execution, by decoupling. This lets us asynchronously invoke methods while
+    not tying up valuable time to execute those methods, by having separate threads do both scheduling and execution.
+        \begin{itemize}
+            \item Active object pattern must implement the provided interface
+            \item not be blocking
+        \end{itemize}
+    \item \textbf{follow the provided state pattern} With the assignment, the \textit{EmbeddedSystemX} class
+    was provided, which outlined the overall requirement for the application.
+\end{itemize}

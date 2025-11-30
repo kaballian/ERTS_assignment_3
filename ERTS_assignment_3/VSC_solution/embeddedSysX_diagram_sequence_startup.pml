@@ -9,13 +9,13 @@ EmbeddedSystemX -> PowerOnSelfTest: Event::PowerOnSelfTest
 Activate PowerOnSelfTest
 PowerOnSelfTest -> PowerOnSelfTest: SystemSelfTest()
 
-alt SelfTestFailed  
+alt Event::SelfTestFailed  
     PowerOnSelfTest -> Failure : Event::SelfTestFailed
     Activate Failure
     Failure -> Failure : incCount()
     Failure -> PowerOnSelfTest : Event::Restart
     deactivate Failure
-else SelfTestOk 
+else Event::SelfTestOk 
     PowerOnSelfTest -> Initializing : Event::SelfTestOk
     deactivate PowerOnSelfTest
     Activate Initializing

@@ -1448,4 +1448,7 @@ REALTIMELOOP CAN CALL IT
     start sequence (check)
     operational sequence(doing)
 
+    18:30
+    writing the report
+    
     */
