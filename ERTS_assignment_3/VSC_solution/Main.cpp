@@ -1157,7 +1157,7 @@ public:
 
 private:
     StateMachine sm;
-    // int VersionNO = 1
+    // int VersionNO = 43 //HEX?
     // std::string = "Ver1.1A"
 
 };
@@ -1405,7 +1405,7 @@ REALTIMELOOP CAN CALL IT
 
 
 
-30-11-25_16.00
+29-11-25_16.00
     TODO:
         - test the current state of the machine, ensure that the sequnce of jobs 
         adheres to the diagram (check)
@@ -1442,5 +1442,10 @@ REALTIMELOOP CAN CALL IT
         
         01:18 im going to bed
 
-        
+
+30-11-25_13:10
+    doing sequence diagram
+    start sequence (check)
+    operational sequence(doing)
+
     */
