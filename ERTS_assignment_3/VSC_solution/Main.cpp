@@ -397,7 +397,7 @@ public:
 private:
     std::mutex mtex;
     std::queue<std::unique_ptr<RTL_Request>> que; //queue of type unique pointers of type RTL requests
-    std::condition_variable cv; //avoid needles polling, uses notify one on the mutex to signal when ready
+    std::condition_variable cv; //avoid needless polling, uses notify one on the mutex to signal when ready
     bool running = true;
 };
 
@@ -1418,7 +1418,7 @@ REALTIMELOOP CAN CALL IT
 
         - implement: worker thread work delay (check)
 
-        - implement: restart in operations
+        - implement: restart in operations (check)
 
         - implement: suspended
 
@@ -1426,13 +1426,21 @@ REALTIMELOOP CAN CALL IT
 
         - implement: exit function, (assert or something like that.)
 
+
         - rewrite menu structure, to only allow legal actions.
 
         - create diagram in plantUML
+            class diagrams created
+            sequence diagrams ongoing
+
+        
+        
 
         - look into file separation. Do this in a new project file. 
 
         - create latex document.
         
+        01:18 im going to bed
 
+        
     */
