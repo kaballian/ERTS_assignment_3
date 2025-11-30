@@ -2,4 +2,81 @@
 
 \subsection{Overall architecture}
 
+\begin{itemize}
+    \item \textbf{EmbeddedSystemX} Is the overall class which implementes all functionality of the application
+    any user interaction is done through a simple text based user interface written in main.
+\end{itemize}
 
+To avoid unncessary C++ semantics, the entire composition of EmbeddedSystemX and all its subcomponents
+is written in one large \textit{.cpp} file, this is has mainly been done to reduce compiler complexity and
+and practical implementation difficulties, which is bound to arise, due to things such as \textit{circular-referencing}. 
+\\
+\subsubsection{State Diagram} 
+The overall structure follows the provided model of the system
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=0.4\textwidth]{pictures/state_machine.png}
+    \caption{Overall statemachine of EmbeddedSystemX}
+    \label{fig:overall_statemachine}
+\end{figure}
+
+There is a focus on the inner statemachine inside of the \textit{Operational} class, which contains a nested statemachien
+In this case referred to as \textit{opFsm - operational state machine}.
+\\
+\subsubsection{Class Diagram}
+To comform with the requirement of the GOF state machine, all of the states are implemented as classes, which are 
+inheriting from the \textit{State}-class
+
+\clearpage
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=0.5\textwidth]{pictures/class_diagram.png}
+    \caption{The State class, is a pure virtual class, which will be explained in a later section}
+    \label{fig:class_diagram}
+\end{figure}
+
+The states are implemented this way, so that the statemachine trusts the state class with all
+the behavior of the implemented classes, this means that they all have the some core
+functions: \textit{eventHandler(), onEntry(), onExit()} and so on. It only fits together with the 
+the singleton pattern. So matter what iteration of the state class, there only exists
+one instance of that class, that has the same public interface as the previous instance.
+
+\subsubsection{Sequence Diagram}
+the sequence of execution in the overall state machine is as follows
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=0.5\textwidth]{pictures/sequence_embeddedSysX.png}
+    \caption{The initial phase of the EmbeddedSystemX's statemachine, here it automatically
+    executes through the initial states. A small chance has been added so that the SelfTest
+    might fail. Else it justs continues to the ready state. It also shows the lifetime of the
+    states as objects.}
+    \label{fig:sequence_embedX}
+\end{figure}
+
+The operational class is where the internal statemachine gets activated by the \textit{onEntry()} 
+function inside the operational class. That signifies the start of the operational sequence diagram
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{pictures/sequence_operational.png}
+    \caption{The internal statemachine \textit{opFsm} inside operational, this is a concurrent
+    statemachine to the on outside, however the two don't have any interplay.
+    As with the outside statemachine, this also have classes as states, implemented by the 
+    state/eventHandler mechanism, all are singletons aswell. All data passed through opFsm, are 
+    referenced to the outside machine.}
+    \label{fig:sequence_operational}
+\end{figure}
+
+The important thing in this sequence diagram here is, that the \textit{RealTimeLoop} is an 
+active object, meaning that its method invocation has been decoupled from its exection, this
+is also shown in figure: \ref{fig:overall_statemachine}. Where to overall mechanism follow
+the following class diagram.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{pictures/state_active_object.png}
+    \caption{The internal class diagram of the active object, which resides inside the 
+    RealTimeLoop class}
+    \label{fig:class_active_object}
+\end{figure}

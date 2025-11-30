@@ -1157,7 +1157,7 @@ public:
 
 private:
     StateMachine sm;
-    // int VersionNO = 43 //HEX?
+    // int VersionNO = 43  
     // std::string = "Ver1.1A"
 
 };
@@ -1450,5 +1450,5 @@ REALTIMELOOP CAN CALL IT
 
     18:30
     writing the report
-    
+
     */

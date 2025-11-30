@@ -2,6 +2,7 @@
 \usepackage[marginparsep=8pt, margin=1.75cm, top=2.5cm, bottom=2.5cm]{geometry}
 \usepackage[english]{babel}
 \usepackage{listings}
+\usepackage{xcolor}
 \usepackage[siunitx]{circuitikz}
 \usepackage{booktabs}
 \usepackage{graphicx} % Required for inserting images
@@ -20,6 +21,16 @@ sorting=none
 \pgfplotsset{compat=newest}
 
 
+\lstset{
+    basicstyle=\ttfamily\small,
+    numbers=left,
+    numberstyle=\tiny,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!50!black},
+    stringstyle=\color{red},
+    breaklines=true,
+    frame=single
+}
 
 
 
