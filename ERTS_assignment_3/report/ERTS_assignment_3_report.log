@@ -1,9 +1,9 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.10.19)  1 DEC 2025 02:37
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.11.3)  1 DEC 2025 15:16
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**c:/REAL_TIME_SYS/Assignment_3/ERTS_assignment_3/ERTS_assignment_3/report/ERTS_assignment_3_report.tex
-(c:/REAL_TIME_SYS/Assignment_3/ERTS_assignment_3/ERTS_assignment_3/report/ERTS_assignment_3_report.tex
+**c:/RTS/assignment_3v2/ERTS_assignment_3/ERTS_assignment_3/report/ERTS_assignment_3_report.tex
+(c:/RTS/assignment_3v2/ERTS_assignment_3/ERTS_assignment_3/report/ERTS_assignment_3_report.tex
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-04>
 (C:\Users\alext\AppData\Local\Programs\MiKTeX\tex/latex/base\article.cls
@@ -892,12 +892,11 @@ Package biblatex Info: Automatic encoding selection.
 \openout4 = `ERTS_assignment_3_report.bcf'.
 
 Package biblatex Info: Trying to load bibliographic data...
-Package biblatex Info: ... file 'ERTS_assignment_3_report.bbl' not found.
-
-No file ERTS_assignment_3_report.bbl.
+Package biblatex Info: ... file 'ERTS_assignment_3_report.bbl' found.
+ (ERTS_assignment_3_report.bbl)
 Package biblatex Info: Reference section=0 on input line 37.
 Package biblatex Info: Reference segment=0 on input line 37.
-(forside.tex
+ (forside.tex
 <logo.png, id=4, 803.0pt x 168.63pt>
 File: logo.png Graphic file (type png)
 <use logo.png>
@@ -982,15 +981,15 @@ Package logreq Info: Writing requests to 'ERTS_assignment_3_report.run.xml'.
 
  ) 
 Here is how much of TeX's memory you used:
- 57507 strings out of 474486
- 1507468 string characters out of 5743754
- 2961994 words of memory out of 5000000
- 79213 multiletter control sequences out of 15000+600000
+ 57510 strings out of 474485
+ 1507518 string characters out of 5743734
+ 2962018 words of memory out of 5000000
+ 79215 multiletter control sequences out of 15000+600000
  564246 words of font info for 58 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 117i,10n,121p,816b,1732s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 117i,10n,121p,808b,1732s stack positions out of 10000i,1000n,20000p,200000b,200000s
  <C:\Users\alext\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm1000.pk><C:/Users/alext/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx10.pfb><C:/Users/alext/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Users/alext/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Users/alext/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr17.pfb><C:/Users/alext/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr5.pfb><C:/Users/alext/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmti10.pfb><C:/Users/alext/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmtt9.pfb>
-Output written on ERTS_assignment_3_report.pdf (20 pages, 590260 bytes).
+Output written on ERTS_assignment_3_report.pdf (20 pages, 590613 bytes).
 PDF statistics:
  127 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)

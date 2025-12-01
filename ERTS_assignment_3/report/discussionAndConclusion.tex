@@ -6,7 +6,7 @@ thread execution.
 looking at the Active object implementation, because the system is dealing with almost
 instantenously executed code, there is no real consequence of execution time, which is
 why an artificial thread sleep is introduced. This is also why the all the futures 
-used in the implementation are void. They are merely used to indicate that some has been done
+used in the implementation are void. They are merely used to indicate that some work has been done,
 however they don't return anything. And all state processing is being held in the Servant
 
 As to whether the desired implementation lives up to the provided diagram is up for discussion,
@@ -15,3 +15,11 @@ little vague, so some artistic liberty was necessary to create a satisfactory so
 
 
 \section{Conclusion}
+It can then be concluded that the group has made a valid implementation of the requested system.
+All critical functionality is preset, however some minor functions are 
+still missing, such as the Suspend state in the Operational statemachine. As mentioned some artistic liberty has 
+been taken due to vague assignment description, which in turn, has led to decisions like using 
+void futures, as the provided state diagram was up to interpretation.
+
+
+%skriv omkring besværligheder, og hvorfor suspend ikke er blevet implementeret.
