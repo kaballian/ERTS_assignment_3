@@ -20,15 +20,15 @@ package "Operational" {
         package "Requests" {
             class ChMode1Req{
             - s: RTL_Servant&
-            - promise: std::promise<void>
+            - promise: std::promise<RTL_Servant::Mode>
             }
             class ChMode2Req{
             - s: RTL_Servant&
-            - promise: std::promise<void>
+            - promise: std::promise<RTL_Servant::Mode>
             }
             class ChMode3Req{
             - s: RTL_Servant&
-            - promise: std::promise<void>
+            - promise: std::promise<RTL_Servant::Mode>
             }
         }
     
@@ -56,9 +56,9 @@ package "Operational" {
 
         class RTL_Proxy {
             +makeModeRsq<RequestT>(): std::future<void>
-            +chMode1(): std::future<void>           
-            +chMode2(): std::future<void>
-            +chMode3(): std::future<void>
+            +chMode1(): std::future<std::future<RTL_Servant::Mode>>           
+            +chMode2(): std::future<std::future<RTL_Servant::Mode>>
+            +chMode3(): std::future<std::future<RTL_Servant::Mode>>
             -serv: RTL_Servant&
             -sched: RTL_Scheduler&
         }

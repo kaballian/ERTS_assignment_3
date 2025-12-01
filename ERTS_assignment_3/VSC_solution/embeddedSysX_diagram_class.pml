@@ -26,10 +26,12 @@ package "EmbeddedSystemX" #DDDDDD {
     class Operational
     {
         + printReqWork(): void 
+        + printMode(): void
         - restartCondition: bool = false
         - opFsm: StateMachine 
-        - futureMode: std::optional<std::future<void>>
-        - pendingFutures: std::vector<std::future<void>>
+        - futureMode: std::optional<std::future<RTL_Servant::Mode>>
+        - pendingFutures: std::vector<std::future<RTL_Servant::Mode>>
+        - lastMade: RTL_Servant::Mode::Mode1
         - configParams: ModeConfig
     }
 

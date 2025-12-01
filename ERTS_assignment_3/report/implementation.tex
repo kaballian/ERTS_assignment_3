@@ -90,7 +90,9 @@ enum class Event
     ChMode2,
     ChMode3,
     WaitModeSwitch,
-    PrintReqQueue
+    PrintReqQueue,
+    CheckAO,
+    CheckMode
 
 };
 
@@ -192,7 +194,7 @@ Since all classes implement the same overall structure, only one will be shown h
 
 % \subsection{Operational state declaration example}
 \subsection{State example: Operational}
-\begin{lstlisting}[language=C++, caption={Operational state class declaration}, firstnumber=580]
+\begin{lstlisting}[language=C++, caption={Operational state class declaration}, firstnumber=560]
 class Operational : public State
 {
     friend class Singleton<Operational>;
@@ -207,6 +209,7 @@ public:
     };
     ModeConfig& getConfigParams() {return configParams;}
     StateMachine* getSubstateMachine() override {return &opFsm;}
+    void printMode();
     void printReqWork();
 private:
     Operational() = default;
@@ -217,18 +220,19 @@ private:
 
     bool restartCondition = false;
     StateMachine opFsm; //internal FSM, is invoked when initialized event is called
-    std::optional<std::future<void>> futureMode;
-    std::vector<std::future<void>> pendingFutures;
+    std::optional<std::future<RTL_Servant::Mode>> futureMode;
+    std::vector<std::future<RTL_Servant::Mode>> pendingFutures;
+    RTL_Servant::Mode lastMode = RTL_Servant::Mode::Mode1;  
     ModeConfig configParams;  
 };
+
 
 \end{lstlisting}
 
 \clearpage
 
 % \subsection{Operational state definition example}
-\begin{lstlisting}[language=C++, caption={Operational state class definition, partly}, firstnumber=780]
-//OPERATIONAL_______________________________________________________________
+\begin{lstlisting}[language=C++, caption={Operational state class definition, partly}, firstnumber=764]
 void Operational::onEntry(StateMachine& sm) 
 {
     // std::cout << "[FUNC]:[onENTRY]:Operational" << std::endl;
@@ -256,43 +260,28 @@ State* Operational::handleEvent(StateMachine& sm, Event e)
         return Singleton<PowerOnSelfTest>::Instance();
         break;
 
-    //these requests might not even work. - should probably be deleted.
-    case Event::ChMode1:
-    case Event::ChMode2:
-    case Event::ChMode3:
+
+    case Event::CheckAO:
     {
-        State* curr = opFsm.getCurrentState();
-        //dynamic_cast<> runtime type check
-        //"is the actual object point to by curr of type RealTimeLoop or a derivative thereof"
-        //returns a RealTimeLoop* if true else nullptr
-        if(auto* rtl = dynamic_cast<RealTimeLoop*>(curr))
+        auto* rtl = Singleton<RealTimeLoop>::Instance();
+        //iterate the pending futures
+        for(auto it = pendingFutures.begin(); it != pendingFutures.end();)
         {
-            RTL_Proxy& proxy = rtl->getProxy();
-        
-            if(e == Event::ChMode1)
-                futureMode = proxy.chMode1(); 
-            if(e == Event::ChMode2)
-                futureMode = proxy.chMode2(); 
-            if(e == Event::ChMode3)
-                futureMode = proxy.chMode3(); 
-        }else{
-            std::cout <<"[OPERATIONAL]:EVENT MODE IGNORED" << std::endl;
-        }         
-        return this;
-    }
-    case Event::WaitModeSwitch:
-    {
-        if(futureMode.has_value())
-        {
-            std::cout <<"[OPERATIONAL]:reading future:" << std::endl;
-            futureMode->get();
-            std::cout <<"[OPERATIONAL]:mode change complete" << std::endl;
-            futureMode.reset();
-        }else{
-            std::cout << "[OPERATIONAL]: NO FUTURE TO BEHOLD!" << std::endl;
+            if(it->wait_for(std::chrono::seconds()) == std::future_status::ready)
+            {
+                // if the promise is delivered
+                RTL_Servant::Mode completed = it->get();
+                //indicate work is done
+                lastMode = completed;
+                std::cout << "AO completed work: mode: "<<static_cast<int>(lastMode) + 1 << std::endl;
+                //remove the completed work from list of futures
+                it = pendingFutures.erase(it); 
+            }
+            else{
+                ++it;
+            }
         }
-        return this; //were not changing state, only reading the future, like a freaking seer
-        
+        return this;
     }
     case Event::Start: 
     {
@@ -322,8 +311,12 @@ State* Operational::handleEvent(StateMachine& sm, Event e)
         }
         return this;
     }
-
-    case  Event::PrintReqQueue:
+    case Event::CheckMode:
+    {
+        printMode();
+        return this;
+    }
+    case Event::PrintReqQueue:
     {
         printReqWork();
         return this;
@@ -335,6 +328,50 @@ State* Operational::handleEvent(StateMachine& sm, Event e)
     }
     
 }
+void Operational::printReqWork()
+{
+    std::cout << "---Requested work items ---\n" << std::endl;
+    if(configParams.req_work.empty())
+    {
+        std::cout <<"(none) \n" << std::endl;
+        return;
+    }
+
+    for(size_t i = 0; i < configParams.req_work.size(); ++i)
+    {
+        auto Mode = configParams.req_work[i];
+        std::cout << i + 1 << ": ";
+        
+        switch (Mode)
+        {
+            case RTL_Servant::Mode::Mode1:
+                std::cout << "Mode1\n";
+                break;
+            case RTL_Servant::Mode::Mode2:
+                std::cout << "Mode2\n";
+                break;
+            case RTL_Servant::Mode::Mode3:
+                std::cout << "Mode3\n";
+                break;
+        }
+    }
+}
+void Operational::printMode()
+{
+    switch (lastMode)
+    {
+        case RTL_Servant::Mode::Mode1:
+            std::cout << "current Mode: 1" << std::endl;
+            break;
+        case RTL_Servant::Mode::Mode2:
+            std::cout << "current Mode: 2" << std::endl;
+            break;
+        case RTL_Servant::Mode::Mode3:
+            std::cout << "current Mode: 3" << std::endl;
+        break;
+    }
+}
+
 
 \end{lstlisting}
 
@@ -350,7 +387,7 @@ the configuration state, can be requested using a templated requesting function.
 
 
 \subsection{EmbeddedSystemX implementation}
-\begin{lstlisting}[language=C++, caption={EmbeddedSystemX}, firstnumber=1128]
+\begin{lstlisting}[language=C++, caption={EmbeddedSystemX}, firstnumber=1114]
 class EmbeddedSystemX
 {
 public:
@@ -375,7 +412,8 @@ public:
     void Run()                      {sm.dispatch(Event::Run);}   
     void Suspend()                  {sm.dispatch(Event::Suspend);}
     void printReqQueue()            {sm.dispatch(Event::PrintReqQueue);} 
-    
+    void checkAO()                  {sm.dispatch(Event::CheckAO);}
+    void checkMode()                {sm.dispatch(Event::CheckMode);}
     void printCurrentState()        {std::cout <<"current state: " << sm << std::endl;}
 
 private:
@@ -620,7 +658,7 @@ public:
     
     //templated type
     template<typename RequestT>
-    std::future<void> makeModeRsq() { //function returns a std::future pointer 
+    std::future<RTL_Servant::Mode> makeModeRsq() { //function returns a std::future pointer 
         std::promise<void> prom; //declare a std::promise
         auto fut = prom.get_future(); //bridge the future to the promise
         /* -->
@@ -644,9 +682,9 @@ public:
     }
 
     //use template to create functions
-    std::future<void> chMode1() { return makeModeRsq<ChMode1Req>(); } // --> invokes the makeModeRsq function and specifies what request -->(goto)
-    std::future<void> chMode2() { return makeModeRsq<ChMode2Req>(); } 
-    std::future<void> chMode3() { return makeModeRsq<ChMode3Req>(); } 
+    std::future<RTL_Servant::Mode> chMode1() { return makeModeRsq<ChMode1Req>(); } // --> invokes the makeModeRsq function and specifies what request -->(goto)
+    std::future<RTL_Servant::Mode> chMode2() { return makeModeRsq<ChMode2Req>(); } 
+    std::future<RTL_Servant::Mode> chMode3() { return makeModeRsq<ChMode3Req>(); } 
 
 
 
