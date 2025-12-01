@@ -71,7 +71,9 @@ enum class Event
     ChMode2,
     ChMode3,
     WaitModeSwitch,
-    PrintReqQueue
+    PrintReqQueue,
+    CheckAO,
+    CheckMode
 
 };
 
@@ -130,6 +132,8 @@ inline std::ostream& operator<<(std::ostream& os, const Event& e)
     case Event::ChMode2:                    return os <<"Event::ChMode2";
     case Event::ChMode3:                    return os <<"Event::ChMode3";
     case Event::WaitModeSwitch:             return os <<"Event::ModeSwitch";
+    case Event::CheckAO:                    return os <<"Event::CheckAO";
+    case Event::CheckMode:                  return os <<"Event::CheckMode";
 
     default:                                return os <<"Event::<UNKNOWN>";
     }
@@ -191,34 +195,10 @@ public:
 // operator overload for statemachine operator << 
 std::ostream& operator<<(std::ostream& os, const StateMachine& sm)
 {
-    // if(sm.getCurrentState())
-    // {
-    //     os << sm.getCurrentState()->name();
-    // }else{
-    //     os <<"<NULL>";
-    // }
-    // return os;
-
     return os << sm.getFullStateName();
 }
 
 
-
-//ALL META CONSTRUCTIONS SHOULD BE COMPLETED AT THIS POINT
-//__________________________________________________
-// STATE CLASSES
-/*
-initials:
-
-    PowerOnSelfTest
-    Initializing
-    Failure
-
-oprationals:
-
-
-real time loop
-*/
 
 //forward declaration of outer classes
 class PowerOnSelfTest;
@@ -234,7 +214,7 @@ class Suspended;
 class RealTimeLoop;
 
 
-//forward declaration of active object 
+
 // ACTIVE OBJECT declarations
 //must containt (from client) -> (proxy)->scheduler-activation list-method request->servant 
 //REAL TIME LOOP SERVANT  
@@ -591,6 +571,7 @@ public:
     };
     ModeConfig& getConfigParams() {return configParams;}
     StateMachine* getSubstateMachine() override {return &opFsm;}
+    void printMode();
     void printReqWork();
 private:
     Operational() = default;
@@ -603,6 +584,7 @@ private:
     StateMachine opFsm; //internal FSM, is invoked when initialized event is called
     std::optional<std::future<void>> futureMode;
     std::vector<std::future<void>> pendingFutures;
+    RTL_Servant::Mode lastMode = RTL_Servant::Mode::Mode1;  
     ModeConfig configParams;  
 };
 
@@ -677,6 +659,7 @@ public:
    
 
     RTL_Proxy& getProxy() {return proxy;}
+    RTL_Servant& getServant() {return servant;}
 
 private:
     RealTimeLoop();
@@ -806,42 +789,66 @@ State* Operational::handleEvent(StateMachine& sm, Event e)
         break;
 
     //these requests might not even work. - should probably be deleted.
-    case Event::ChMode1:
-    case Event::ChMode2:
-    case Event::ChMode3:
-    {
-        State* curr = opFsm.getCurrentState();
-        //dynamic_cast<> runtime type check
-        //"is the actual object point to by curr of type RealTimeLoop or a derivative thereof"
-        //returns a RealTimeLoop* if true else nullptr
-        if(auto* rtl = dynamic_cast<RealTimeLoop*>(curr))
-        {
-            RTL_Proxy& proxy = rtl->getProxy();
+    // case Event::ChMode1:
+    // case Event::ChMode2:
+    // case Event::ChMode3:
+    // {
+    //     State* curr = opFsm.getCurrentState();
+    //     //dynamic_cast<> runtime type check
+    //     //"is the actual object point to by curr of type RealTimeLoop or a derivative thereof"
+    //     //returns a RealTimeLoop* if true else nullptr
+    //     if(auto* rtl = dynamic_cast<RealTimeLoop*>(curr))
+    //     {
+    //         RTL_Proxy& proxy = rtl->getProxy();
         
-            if(e == Event::ChMode1)
-                futureMode = proxy.chMode1(); 
-            if(e == Event::ChMode2)
-                futureMode = proxy.chMode2(); 
-            if(e == Event::ChMode3)
-                futureMode = proxy.chMode3(); 
-        }else{
-            std::cout <<"[OPERATIONAL]:EVENT MODE IGNORED" << std::endl;
-        }         
-        return this;
-    }
-    case Event::WaitModeSwitch:
+    //         if(e == Event::ChMode1)
+    //             futureMode = proxy.chMode1(); 
+    //         if(e == Event::ChMode2)
+    //             futureMode = proxy.chMode2(); 
+    //         if(e == Event::ChMode3)
+    //             futureMode = proxy.chMode3(); 
+    //     }else{
+    //         std::cout <<"[OPERATIONAL]:EVENT MODE IGNORED" << std::endl;
+    //     }         
+    //     return this;
+    // }
+    // case Event::WaitModeSwitch:
+    // {
+    //     if(futureMode.has_value())
+    //     {
+    //         std::cout <<"[OPERATIONAL]:reading future:" << std::endl;
+    //         futureMode->get();
+    //         std::cout <<"[OPERATIONAL]:mode change complete" << std::endl;
+    //         futureMode.reset();
+    //     }else{
+    //         std::cout << "[OPERATIONAL]: NO FUTURE TO BEHOLD!" << std::endl;
+    //     }
+    //     return this; //were not changing state, only reading the future, like a freaking seer
+        
+    // }
+
+    
+
+    case Event::CheckAO:
     {
-        if(futureMode.has_value())
+        auto* rtl = Singleton<RealTimeLoop>::Instance();
+        //iterate the pending futures
+        for(auto it = pendingFutures.begin(); it != pendingFutures.end();)
         {
-            std::cout <<"[OPERATIONAL]:reading future:" << std::endl;
-            futureMode->get();
-            std::cout <<"[OPERATIONAL]:mode change complete" << std::endl;
-            futureMode.reset();
-        }else{
-            std::cout << "[OPERATIONAL]: NO FUTURE TO BEHOLD!" << std::endl;
+            if(it->wait_for(std::chrono::seconds()) == std::future_status::ready)
+            {
+                // if the promise is delivered
+                lastMode = rtl->getServant().currentMode();
+                //indicate work is done
+                std::cout << "AO completed work: mode: "<<static_cast<int>(lastMode) + 1 << std::endl;
+                //remove the completed work from list of futures
+                it = pendingFutures.erase(it); 
+            }
+            else{
+                ++it;
+            }
         }
-        return this; //were not changing state, only reading the future, like a freaking seer
-        
+        return this;
     }
     case Event::Start: 
     {
@@ -871,8 +878,12 @@ State* Operational::handleEvent(StateMachine& sm, Event e)
         }
         return this;
     }
-
-    case  Event::PrintReqQueue:
+    case Event::CheckMode:
+    {
+        printMode();
+        return this;
+    }
+    case Event::PrintReqQueue:
     {
         printReqWork();
         return this;
@@ -912,7 +923,21 @@ void Operational::printReqWork()
         }
     }
 }
-
+void Operational::printMode()
+{
+    switch (lastMode)
+    {
+        case RTL_Servant::Mode::Mode1:
+            std::cout << "current Mode: 1" << std::endl;
+            break;
+        case RTL_Servant::Mode::Mode2:
+            std::cout << "current Mode: 2" << std::endl;
+            break;
+        case RTL_Servant::Mode::Mode3:
+            std::cout << "current Mode: 3" << std::endl;
+        break;
+    }
+}
 
 
 
@@ -1149,7 +1174,8 @@ public:
     void Run()                      {sm.dispatch(Event::Run);}   
     void Suspend()                  {sm.dispatch(Event::Suspend);}
     void printReqQueue()            {sm.dispatch(Event::PrintReqQueue);} 
-    
+    void checkAO()                  {sm.dispatch(Event::CheckAO);}
+    void checkMode()                {sm.dispatch(Event::CheckMode);}
     void printCurrentState()        {std::cout <<"current state: " << sm << std::endl;}
 
 private:
@@ -1170,6 +1196,8 @@ void printMenu()
     std::cout << "6 - resume"<< std::endl;
     std::cout << "7 - restart"<< std::endl;
     std::cout << "8 - exit"<< std::endl;
+    std::cout << "9 - checkAO" << std::endl;
+    std::cout << "10 - checkMode" << std::endl;
     std::cout << "11 - print requested work queue"<< std::endl;
     std::cout << "12 - print current state" << std::endl;
 }
@@ -1224,6 +1252,11 @@ int main(void)
             system.Exit();
             break;
         case 9:
+            system.checkAO();
+            break;
+        case 10: 
+            system.checkMode();
+            break;
             
         case 11:
             system.printReqQueue();
@@ -1447,5 +1480,8 @@ REALTIMELOOP CAN CALL IT
 
     18:30
     writing the report
+
+01-12-25_18:00
+    attempting to transfer the changes mode from the AO to the operational class, to correctly fullfill the promise
 
     */
