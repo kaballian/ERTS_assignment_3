@@ -262,7 +262,7 @@ public:
 //REQUEST FUNCTIONS
 class ChMode1Req : public RTL_Request{
 public:
-    ChMode1Req(RTL_Servant& s, std::promise<void> p)
+    ChMode1Req(RTL_Servant& s, std::promise<RTL_Servant::Mode> p)
      : s(s), promise(std::move(p))
     {} 
 
@@ -271,7 +271,7 @@ public:
         s.chMode1_impl();
         //though the promise is <void> it still sets the shared "thread" state to "ready"
         //--> i've returned to say i've fullfilled the promise
-        promise.set_value();
+        promise.set_value(s.currentMode());
     }
     bool can_run() const override {
         //check the servant to see if the current mode is Mode3, if true then this event is allowed to run
@@ -280,18 +280,18 @@ public:
 
 private:
     RTL_Servant& s;
-    std::promise<void> promise;
+    std::promise<RTL_Servant::Mode> promise;
 };
 class ChMode2Req : public RTL_Request{
 public:
-    ChMode2Req(RTL_Servant& s, std::promise<void> p)
+    ChMode2Req(RTL_Servant& s, std::promise<RTL_Servant::Mode> p)
      : s(s), promise(std::move(p))
     {} 
 
     void call() override {
         std::this_thread::sleep_for(std::chrono::seconds(2+(std::rand() % 9)));
         s.chMode2_impl();
-        promise.set_value();
+        promise.set_value(s.currentMode());
     }
     bool can_run() const override {
         //same logic, but for new mode
@@ -300,18 +300,18 @@ public:
 
 private:
     RTL_Servant& s;
-    std::promise<void> promise;
+    std::promise<RTL_Servant::Mode> promise;
 };
 class ChMode3Req : public RTL_Request{
 public:
-    ChMode3Req(RTL_Servant& s, std::promise<void> p)
+    ChMode3Req(RTL_Servant& s, std::promise<RTL_Servant::Mode> p)
      : s(s), promise(std::move(p))  /*use of move semantics to transfer pointer*/
     {} 
 
     void call() override {
         std::this_thread::sleep_for(std::chrono::seconds(2+(std::rand() % 9)));
         s.chMode3_impl();
-        promise.set_value();
+        promise.set_value(s.currentMode());
     }
     bool can_run() const override {
         return s.currentMode() == RTL_Servant::Mode::Mode2;
@@ -319,7 +319,7 @@ public:
 
 private:
     RTL_Servant& s;
-    std::promise<void> promise;
+    std::promise<RTL_Servant::Mode> promise;
 };
 
 //ACTIVATION LIST / QUEUE
@@ -454,8 +454,8 @@ public:
     
     //templated type
     template<typename RequestT>
-    std::future<void> makeModeRsq() { //function returns a std::future pointer 
-        std::promise<void> prom; //declare a std::promise
+    std::future<RTL_Servant::Mode> makeModeRsq() { //function returns a std::future pointer 
+        std::promise<RTL_Servant::Mode> prom; //declare a std::promise
         auto fut = prom.get_future(); //bridge the future to the promise
         /* -->
         in one foul swoop, allocate memory for RequestT type, with given arguments
@@ -478,9 +478,9 @@ public:
     }
 
     //use template to create functions
-    std::future<void> chMode1() { return makeModeRsq<ChMode1Req>(); } // --> invokes the makeModeRsq function and specifies what request -->(goto)
-    std::future<void> chMode2() { return makeModeRsq<ChMode2Req>(); } 
-    std::future<void> chMode3() { return makeModeRsq<ChMode3Req>(); } 
+    std::future<RTL_Servant::Mode> chMode1() { return makeModeRsq<ChMode1Req>(); } // --> invokes the makeModeRsq function and specifies what request -->(goto)
+    std::future<RTL_Servant::Mode> chMode2() { return makeModeRsq<ChMode2Req>(); } 
+    std::future<RTL_Servant::Mode> chMode3() { return makeModeRsq<ChMode3Req>(); } 
 
 
 
@@ -582,8 +582,8 @@ private:
 
     bool restartCondition = false;
     StateMachine opFsm; //internal FSM, is invoked when initialized event is called
-    std::optional<std::future<void>> futureMode;
-    std::vector<std::future<void>> pendingFutures;
+    std::optional<std::future<RTL_Servant::Mode>> futureMode;
+    std::vector<std::future<RTL_Servant::Mode>> pendingFutures;
     RTL_Servant::Mode lastMode = RTL_Servant::Mode::Mode1;  
     ModeConfig configParams;  
 };
@@ -788,46 +788,6 @@ State* Operational::handleEvent(StateMachine& sm, Event e)
         return Singleton<PowerOnSelfTest>::Instance();
         break;
 
-    //these requests might not even work. - should probably be deleted.
-    // case Event::ChMode1:
-    // case Event::ChMode2:
-    // case Event::ChMode3:
-    // {
-    //     State* curr = opFsm.getCurrentState();
-    //     //dynamic_cast<> runtime type check
-    //     //"is the actual object point to by curr of type RealTimeLoop or a derivative thereof"
-    //     //returns a RealTimeLoop* if true else nullptr
-    //     if(auto* rtl = dynamic_cast<RealTimeLoop*>(curr))
-    //     {
-    //         RTL_Proxy& proxy = rtl->getProxy();
-        
-    //         if(e == Event::ChMode1)
-    //             futureMode = proxy.chMode1(); 
-    //         if(e == Event::ChMode2)
-    //             futureMode = proxy.chMode2(); 
-    //         if(e == Event::ChMode3)
-    //             futureMode = proxy.chMode3(); 
-    //     }else{
-    //         std::cout <<"[OPERATIONAL]:EVENT MODE IGNORED" << std::endl;
-    //     }         
-    //     return this;
-    // }
-    // case Event::WaitModeSwitch:
-    // {
-    //     if(futureMode.has_value())
-    //     {
-    //         std::cout <<"[OPERATIONAL]:reading future:" << std::endl;
-    //         futureMode->get();
-    //         std::cout <<"[OPERATIONAL]:mode change complete" << std::endl;
-    //         futureMode.reset();
-    //     }else{
-    //         std::cout << "[OPERATIONAL]: NO FUTURE TO BEHOLD!" << std::endl;
-    //     }
-    //     return this; //were not changing state, only reading the future, like a freaking seer
-        
-    // }
-
-    
 
     case Event::CheckAO:
     {
@@ -838,8 +798,9 @@ State* Operational::handleEvent(StateMachine& sm, Event e)
             if(it->wait_for(std::chrono::seconds()) == std::future_status::ready)
             {
                 // if the promise is delivered
-                lastMode = rtl->getServant().currentMode();
+                RTL_Servant::Mode completed = it->get();
                 //indicate work is done
+                lastMode = completed;
                 std::cout << "AO completed work: mode: "<<static_cast<int>(lastMode) + 1 << std::endl;
                 //remove the completed work from list of futures
                 it = pendingFutures.erase(it); 
