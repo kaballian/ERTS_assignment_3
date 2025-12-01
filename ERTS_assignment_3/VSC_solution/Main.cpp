@@ -103,9 +103,6 @@ public:
     virtual std::string name() const = 0; 
     virtual ~State() = default;
 
-
-
-
 };
 
 
@@ -273,7 +270,7 @@ class RTL_Request
 {
 public:
     /*
-    there is dependencies, no preconditions, nothing is holding it back
+    there is no dependencies, no preconditions, nothing is holding it back
     thus execution be done immidiately, FIFO style.
     */
     virtual bool can_run() const {return true;} 
@@ -453,7 +450,7 @@ public:
 
     void enqueue(std::unique_ptr<RTL_Request> req) 
     {
-        //add/move work to the queue using insert.¨
+        //add/move work to the queue using insert.
         queue.insert(std::move(req));
     }
 

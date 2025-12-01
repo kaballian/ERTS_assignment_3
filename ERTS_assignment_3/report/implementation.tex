@@ -1,8 +1,670 @@
 \section{Implementation}
 
-\begin{lstlisting}[language=C++]
+As previously mentioned, to avoid c++ referencing issues, the entire implementation is made in one large file.
+In this section, some of the main takeaways from the implementation is highlighted.
+
+\subsection{headers and defines}
+\begin{lstlisting}[language=C++, caption={include headers and custom defines}, firstnumber=1]
 #include <iostream>
-int main() {
-    std::cout << "Hello World!";
-}
+#include <cstdlib>
+#include <random>
+#include <ctime>
+#include <thread>
+#include <chrono>
+#include <future>
+#include <condition_variable>
+#include <mutex>
+#include <queue>
+#include <optional>
+#include <vector>
+
+
+#define TEST_MODE //comment out to disable test mode msg. Remember to build...
+#ifdef TEST_MODE  
+    #define TEST_PRINT(msg) \
+        do { std::cout << "[TEST]:" << msg << std::endl; }while(0)
+#else  
+    #define TEST_PRINT(msg) \
+        do {} while(0)
+#endif
+
 \end{lstlisting}
+
+\subsection{Singleton pattern}
+A main feature of the implementation was a singleton pattern, this means that the only 
+one instance of every type that invokes this pattern can be created.
+\begin{lstlisting}[language=C++, caption={Singleton class}, firstnumber=24]
+template<typename T>
+class Singleton
+{
+public:
+	static T* Instance() 
+	{
+		if(_instance == nullptr){
+			_instance = new T;
+		}
+		return _instance;
+	}
+protected:
+	Singleton() = default;
+	~Singleton() = default;
+	
+	Singleton(const Singleton&)				= delete;
+	Singleton& operator=(const Singleton&)	= delete;
+
+private:
+	static T* _instance;
+};
+
+
+template <typename T>
+T* Singleton<T>::_instance = nullptr;
+\end{lstlisting}
+
+The templated type ensures that different classes can invoke the singleton pattern, 
+because the destructor is protected, means that nothing can accidentally destroy the object.
+The idea is that the first time a state is required, it is constructed, and because
+the type is templated and made static, it is essentially remembered for the life of the programming.
+Thus whenever a templated type is invoked, which already exists, the pointer to that instance is returned instead.
+
+\subsection{event enum class}
+\begin{lstlisting}[language=C++, caption={Event enum class}, firstnumber=53]
+enum class Event
+{
+	Initial,
+	SelfTestOk,
+	SelfTestFailed,
+	Error,
+	Initialized,
+	Restart,
+	Exit,
+	ready,
+    Configure,
+    ConfigurationEnded,
+    Stop,
+    Resume,
+    Start,
+    Run,
+    Suspend,
+    ChMode1,
+    ChMode2,
+    ChMode3,
+    WaitModeSwitch,
+    PrintReqQueue
+
+};
+
+\end{lstlisting}
+The event enum class, acts a way to indicate what events is being passed around. 
+This is combined with the handleevent function of every state, to control the statemachine.
+
+
+\subsection{state class}
+\begin{lstlisting}[language=C++, caption={state class}, firstnumber=92]
+class State
+{
+public:
+	virtual State* handleEvent(StateMachine& sm, Event e) = 0;
+	/*
+	after creation of object, state machie calls onEntry as overriden by children*/
+	virtual void onEntry(StateMachine& sm) {};
+
+	virtual void onExit(StateMachine& sm) {};
+
+	virtual StateMachine* getSubstateMachine() {return nullptr;}
+    virtual std::string name() const = 0; 
+    virtual ~State() = default;
+
+};
+\end{lstlisting}
+
+Pure virtual class State. Because handleEvent is has a function that is = 0, means that it must
+be overriden by any class that inherits state. That and the two other functions onEntry and onExit,
+make up the three functions that the statemachine uses to transfer control. It is also what enacts
+the GOF state pattern, because it creates a new class with defined functions when the states is changed.
+
+\subsection{statemachine class}
+\begin{lstlisting}[language=C++, caption={statemachine class}, firstnumber=138]
+    class StateMachine
+{
+
+private:
+	State* current;
+
+public:
+    StateMachine() : current(nullptr) {}
+    //avoid implicit conversions. compiler would make State*->Statemachine
+	explicit StateMachine(State* initialState) : current(initialState)
+	{
+		if(current)
+			current->onEntry(*this); // the initial state at creation
+	}
+
+	void dispatch(Event e)
+	{
+		/*sequence explained in State.h*/
+        // std::cout << "[DISPATCH]:["<< e << "]" << std::endl;
+        TEST_PRINT("[DISPATCH]:["<< e << "]");
+		State* next = current->handleEvent(*this,e); 
+		if (next != current) 
+		{
+
+			//use of this
+			//this -> pointer to the object itself
+			//*this -> reference to the statemachine
+			current->onExit(*this);
+			// delete current;  //this might be a fix to the segmentation fault
+			current = next;
+			if (current)
+			{
+				current->onEntry(*this);
+			}
+		} //a condition to check if next and current is the same can be set here. 
+        // else the SM will set the end of execution here.
+        //exeuction delay here
+        // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+	}
+
+    State* getCurrentState() const{return current;}
+    std::string getStateName() const {return current ? current->name() : "<NULL>";}
+    std::string getFullStateName() const 
+    {
+        std::string res = current ? current->name() : "<NULL>" ;
+        if(auto* sub = current->getSubstateMachine())
+        {
+            res += " -> " + sub->getFullStateName();
+        }
+        return res;
+    }
+};
+
+\end{lstlisting}
+
+The statemachine class, is the main engine that drives the state changes.
+When instantiated, it sets the initialState and then drives the changes for everyclass.
+Due to the way the classes, or this case, states are implemented, all states comply with the interface.
+All state classes makes use of dynamic binding, due to them having to override the functions to comply with 
+the pure virtual class. Meaning that all states acts on the handleevent function etc. 
+This is key to enacting the GOF state pattern.
+
+Since all classes implement the same overall structure, only one will be shown here. 
+
+
+\subsection{operational state declaration example}
+\begin{lstlisting}[language=C++, caption={Operational state class declaration}, firstnumber=580]
+class Operational : public State
+{
+    friend class Singleton<Operational>;
+public:
+    void onEntry(StateMachine& sm) override;
+    void onExit(StateMachine& sm) override;
+    State* handleEvent(StateMachine& sm, Event e) override;
+    std::string name() const override {return "Operational";}
+
+    struct ModeConfig{
+        std::vector<RTL_Servant::Mode> req_work;
+    };
+    ModeConfig& getConfigParams() {return configParams;}
+    StateMachine* getSubstateMachine() override {return &opFsm;}
+    void printReqWork();
+private:
+    Operational() = default;
+    ~Operational() override = default;
+
+    Operational(const Operational&) = delete;
+    Operational& operator=(const Operational&) = delete;
+
+    bool restartCondition = false;
+    StateMachine opFsm; //internal FSM, is invoked when initialized event is called
+    std::optional<std::future<void>> futureMode;
+    std::vector<std::future<void>> pendingFutures;
+    ModeConfig configParams;  
+};
+
+\end{lstlisting}
+
+\subsection{operational state definition example}
+\begin{lstlisting}[language=C++, caption={Operational state class definition, partly}, firstnumber=780]
+//OPERATIONAL_______________________________________________________________
+void Operational::onEntry(StateMachine& sm) 
+{
+    // std::cout << "[FUNC]:[onENTRY]:Operational" << std::endl;
+    TEST_PRINT("[FUNC]:[onENTRY]:Operational");
+    if(restartCondition)
+    {
+        sm.dispatch(Event::Restart);
+    }
+    /*SPIN UP INTERNAL FSM*/
+        //BE WARNED, FSM TRANSITION IS HAPPENING AUTOMATICALLY.   
+    opFsm = StateMachine(Singleton<Ready>::Instance());
+}
+
+void Operational::onExit(StateMachine& sm) 
+{
+    // std::cout << "[FUNC]:[onEXIT]:Operational" << std::endl;
+    TEST_PRINT("[FUNC]:[onEXIT]:Operational");
+}
+State* Operational::handleEvent(StateMachine& sm, Event e) 
+{
+    switch (e)
+    {
+
+    case Event::Restart:
+        return Singleton<PowerOnSelfTest>::Instance();
+        break;
+
+    //these requests might not even work. - should probably be deleted.
+    case Event::ChMode1:
+    case Event::ChMode2:
+    case Event::ChMode3:
+    {
+        State* curr = opFsm.getCurrentState();
+        //dynamic_cast<> runtime type check
+        //"is the actual object point to by curr of type RealTimeLoop or a derivative thereof"
+        //returns a RealTimeLoop* if true else nullptr
+        if(auto* rtl = dynamic_cast<RealTimeLoop*>(curr))
+        {
+            RTL_Proxy& proxy = rtl->getProxy();
+        
+            if(e == Event::ChMode1)
+                futureMode = proxy.chMode1(); 
+            if(e == Event::ChMode2)
+                futureMode = proxy.chMode2(); 
+            if(e == Event::ChMode3)
+                futureMode = proxy.chMode3(); 
+        }else{
+            std::cout <<"[OPERATIONAL]:EVENT MODE IGNORED" << std::endl;
+        }         
+        return this;
+    }
+    case Event::WaitModeSwitch:
+    {
+        if(futureMode.has_value())
+        {
+            std::cout <<"[OPERATIONAL]:reading future:" << std::endl;
+            futureMode->get();
+            std::cout <<"[OPERATIONAL]:mode change complete" << std::endl;
+            futureMode.reset();
+        }else{
+            std::cout << "[OPERATIONAL]: NO FUTURE TO BEHOLD!" << std::endl;
+        }
+        return this; //were not changing state, only reading the future, like a freaking seer
+        
+    }
+    case Event::Start: 
+    {
+        //transition of inner statemachine to RTL, created in READY eventhandler
+        opFsm.dispatch(Event::Run);
+        //ensure we are in RTL
+        State* curr = opFsm.getCurrentState();
+        if(auto* rtl = dynamic_cast<RealTimeLoop*>(curr))
+        {
+            RTL_Proxy& proxy = rtl->getProxy();
+            for(auto mode : configParams.req_work)
+            {
+                switch (mode)
+                {
+                case RTL_Servant::Mode::Mode1:
+                    pendingFutures.push_back(proxy.chMode1());
+                    break;
+                case RTL_Servant::Mode::Mode2:
+                    pendingFutures.push_back(proxy.chMode2());
+                    break;
+                case RTL_Servant::Mode::Mode3:
+                    pendingFutures.push_back(proxy.chMode3());
+                    break;
+                }
+            }
+        configParams.req_work.clear(); //empties the vector
+        }
+        return this;
+    }
+
+    case  Event::PrintReqQueue:
+    {
+        printReqWork();
+        return this;
+    }
+    //this is doing the heavy lifting
+    default:
+        opFsm.dispatch(e); //any changes to inner statemachine is done through this dispatch!
+        return this;
+    }
+    
+}
+
+\end{lstlisting}
+
+
+The Operational class, which acts the main driving state for the outer statemachinem, aswell as the
+"owner" of the internal statemachine, refered to as "opFsm".
+The handlevent function does most of the heavy lifting, in terms of functionality.
+specifically the case "Event::start, which firstly dispatches the event run, to the internal 
+statemachine, setting the stage for the scheduler to run. Afterwards its ensures
+that the state of the internal machine is RealTimeLoop, which means it can then use 
+the proxy which is owned by that state. From here the pendingFutures, which has been made using 
+the configuration state, can be requested using a templated requesting function.
+
+
+\subsection{EmbeddedSystemX implementation}
+\begin{lstlisting}[language=C++, caption={EmbeddedSystemX}, firstnumber=1128]
+class EmbeddedSystemX
+{
+public:
+    EmbeddedSystemX() : sm(Singleton<PowerOnSelfTest>::Instance()){} 
+
+
+
+    //public interfaces
+
+    void SelfTestOk()               {sm.dispatch(Event::SelfTestOk);}
+    void SelftestFailed()           {sm.dispatch(Event::SelfTestFailed);}
+    void Error()                    {sm.dispatch(Event::Error);}
+    void Initialized()              {sm.dispatch(Event::Initialized);}
+    void Restart()                  {sm.dispatch(Event::Restart);}
+    void Exit()                     {sm.dispatch(Event::Exit);}
+    void ready()                    {sm.dispatch(Event::ready);}
+    void Configure()                {sm.dispatch(Event::Configure);}
+    void ConfigurationEnded()       {sm.dispatch(Event::ConfigurationEnded);}
+    void Stop()                     {sm.dispatch(Event::Stop);}
+    void Resume()                   {sm.dispatch(Event::Resume);}                   
+    void Start()                    {sm.dispatch(Event::Start);}                  
+    void Run()                      {sm.dispatch(Event::Run);}   
+    void Suspend()                  {sm.dispatch(Event::Suspend);}
+    void printReqQueue()            {sm.dispatch(Event::PrintReqQueue);} 
+    
+    void printCurrentState()        {std::cout <<"current state: " << sm << std::endl;}
+
+private:
+    StateMachine sm;
+    // int VersionNO = 43  
+    // std::string = "Ver1.1A"
+
+};
+
+\end{lstlisting}
+
+
+\subsection{Active object}
+A big focus point of this assignment, is to implement the RealTimeLoop state as an
+active object. What this means, is that the internal states of the class, has to be
+requested and cannot be guaranteed to be executed immidiately, also the main feature
+of the active object, is to separate method invocation from execution.
+
+\begin{lstlisting}[language=C++, caption={Active Object}, firstnumber=243]
+class RTL_Servant {
+public:
+    enum class Mode {Mode1, Mode2, Mode3};
+    RTL_Servant() : mode(Mode::Mode1) {/*sets initial mode to mode 1*/}
+
+    //--> this is where ill do the actual work, unwind and return to where this function is called from
+    void chMode1_impl() {
+        mode = Mode::Mode1;
+        std::cout << "[RTL_servant]:switched to mode 1" << std::endl;
+    }
+    void chMode2_impl() {
+        mode = Mode::Mode2;
+        std::cout << "[RTL_servant]:switched to mode 2" << std::endl;
+    }
+    void chMode3_impl() {
+        mode = Mode::Mode3;
+        std::cout << "[RTL_servant]:switched to mode 3" << std::endl;
+    }
+
+    Mode currentMode() const {return mode;}
+
+private:
+    Mode mode;
+};
+
+class RTL_Request
+{
+public:
+    /*
+    there is no dependencies, no preconditions, nothing is holding it back
+    thus execution be done immidiately, FIFO style.
+    */
+    virtual bool can_run() const {return true;} 
+    virtual void call() = 0; //pure virual, must be overridden
+    virtual ~RTL_Request() = default;
+};
+
+class ChMode1Req : public RTL_Request{
+public:
+    ChMode1Req(RTL_Servant& s, std::promise<void> p)
+     : s(s), promise(std::move(p))
+    {} 
+
+    void call() override {   //--> this is where i call the servant to do the work -->(goto RTL_servant)
+        std::this_thread::sleep_for(std::chrono::seconds(2+(std::rand() % 9)));
+        s.chMode1_impl();
+        //though the promise is <void> it still sets the shared "thread" state to "ready"
+        //--> i've returned to say i've fullfilled the promise
+        promise.set_value();
+    }
+    bool can_run() const override {
+        //check the servant to see if the current mode is Mode3, if true then this event is allowed to run
+        return s.currentMode() == RTL_Servant::Mode::Mode3;
+    }
+
+private:
+    RTL_Servant& s;
+    std::promise<void> promise;
+};
+
+class ChMode2Req : public RTL_Request{
+public:
+    ChMode2Req(RTL_Servant& s, std::promise<void> p)
+     : s(s), promise(std::move(p))
+    {} 
+
+    void call() override {
+        std::this_thread::sleep_for(std::chrono::seconds(2+(std::rand() % 9)));
+        s.chMode2_impl();
+        promise.set_value();
+    }
+    bool can_run() const override {
+        //same logic, but for new mode
+        return s.currentMode() == RTL_Servant::Mode::Mode1;
+    }
+
+private:
+    RTL_Servant& s;
+    std::promise<void> promise;
+};
+
+class ChMode3Req : public RTL_Request{
+public:
+    ChMode3Req(RTL_Servant& s, std::promise<void> p)
+     : s(s), promise(std::move(p))  /*use of move semantics to transfer pointer*/
+    {} 
+
+    void call() override {
+        std::this_thread::sleep_for(std::chrono::seconds(2+(std::rand() % 9)));
+        s.chMode3_impl();
+        promise.set_value();
+    }
+    bool can_run() const override {
+        return s.currentMode() == RTL_Servant::Mode::Mode2;
+    }
+
+private:
+    RTL_Servant& s;
+    std::promise<void> promise;
+};
+
+class RTL_ActivationQueue
+{
+public:
+    void insert(std::unique_ptr<RTL_Request> req)
+    {
+        std::lock_guard<std::mutex> lock(mtex);
+        que.push(std::move(req));
+        cv.notify_one();
+    }
+    //this might be overkill
+    std::unique_ptr<RTL_Request> remove()
+    {
+        //create unique pointer of RTL_requests
+        std::unique_ptr<RTL_Request> req;
+
+        //this might be super overkill
+        //acquire the lock so the que can be used safely, no one else can push/pop
+        std::unique_lock<std::mutex> lock(mtex);
+
+        //make the thread sleep until either request is available or system is stopping
+        //capture everything by reference, q and running
+        cv.wait(lock, [&]{return !que.empty() || !running; });
+        //if queue is not empty. undefined behaviour if empty queue is pop'd 
+        if(!que.empty())
+        {
+            //take ownership of the first object in the queue 
+            req = std::move(que.front());
+            //and pop it, remove the first element;
+            que.pop();
+        }
+        return req;
+    }
+
+    void set_running(bool status)
+    {   
+        //take the lock and lock it now, then automatically unlock it when the scope ends
+        /*
+        we create a temporary object named lock, that takes types of std::mutex
+        the invoked constructor locks the mutex
+        when the lock goes out of scope (it leaves this function body) the destructor
+        is automatically invoked and the resources is released. */
+        std::lock_guard<std::mutex> lock(mtex);
+        //indicate we are working
+        running = status;
+        cv.notify_all();
+    }
+
+private:
+    std::mutex mtex;
+    std::queue<std::unique_ptr<RTL_Request>> que; //queue of type unique pointers of type RTL requests
+    std::condition_variable cv; //avoid needless polling, uses notify one on the mutex to signal when ready
+    bool running = true;
+};
+
+class RTL_Scheduler{
+public:
+    RTL_Scheduler() = default; 
+
+    void start()
+    {
+        /*
+        start the queue
+        set_running contains a lock that acquires the mutex
+        "i own the mutex now, no other thread may pass"
+        */
+        queue.set_running(true);
+        //-->spin up the threads with work from the queue
+        /*
+        lambda invocation
+        [this] gives the lambda access to fields/functions from RTL_ActivationQueue
+        the while, makes the thread execute as long as the object is alive. */
+        worker = std::thread([this](){
+            while(true)
+            {
+                //-->take the request from the queue
+                auto req = queue.remove(); 
+                if(!req) //if the queue is empty
+                {
+                    break;
+                }
+                if(req->can_run()) //-->if the request can be ran, ie. work can be done
+                {   
+                    //INVOCATION --> (goto) .call chMode1Req
+                    req->call(); //this is of type unique_ptr<RTL_Request> 
+                }
+                
+            }
+        });
+    }
+    void stop()
+    {
+        //set the running flag to false
+        queue.set_running(false);
+        // join all threads if they are done working
+        if(worker.joinable())
+        {
+            //joins the thread, terminates the processing.
+            worker.join();
+        }
+    }
+    void enqueue(std::unique_ptr<RTL_Request> req) 
+    {
+        //add/move work to the queue using insert.
+        queue.insert(std::move(req));
+    }
+
+private:
+    RTL_ActivationQueue queue;
+    std::thread worker;
+ 
+};
+
+class RTL_Proxy{
+public:
+    // RTL_Proxy() = default;
+    RTL_Proxy(
+        RTL_Servant& servant,
+        RTL_Scheduler& scheduler)
+        : serv(servant), sched(scheduler) {}
+    
+    //templated type
+    template<typename RequestT>
+    std::future<void> makeModeRsq() { //function returns a std::future pointer 
+        std::promise<void> prom; //declare a std::promise
+        auto fut = prom.get_future(); //bridge the future to the promise
+        /* -->
+        in one foul swoop, allocate memory for RequestT type, with given arguments
+        and wraps the object in a std::unique_ptr, without the use of new.
+        In other words:
+        A promise is created
+        A future is extracted
+        A request object is created --> this object determines
+        - which servant to call (serv)
+        - how to call it (through the future)
+        - the promise of the work
+
+        this is then sent to the queue by scheduler.
+        */
+        auto req = std::make_unique<RequestT>(serv, std::move(prom)); 
+        //queue the request through the scheduler.
+        sched.enqueue(std::move(req)); //--> sheduler thread is the run from RealTimeLoop::onEntry --> (goto)
+
+        return fut;
+    }
+
+    //use template to create functions
+    std::future<void> chMode1() { return makeModeRsq<ChMode1Req>(); } // --> invokes the makeModeRsq function and specifies what request -->(goto)
+    std::future<void> chMode2() { return makeModeRsq<ChMode2Req>(); } 
+    std::future<void> chMode3() { return makeModeRsq<ChMode3Req>(); } 
+
+
+
+private:
+    RTL_Servant& serv;
+    RTL_Scheduler& sched;
+};
+
+\end{lstlisting}
+
+The listing above is the entire code for using the active object implementation. 
+This implemention is an attempt at following the active object structure with the 
+commands pattern. The state RealTimeLoop owns the servant, scheduler and the proxy.
+The scheduler itself owns the ActivationQueue and all the requests are a inherited request type.
+Following the sequence diagram on figure: \ref{fig:sequenceRealTimeLoop}. A precondition t
+this is that some work has been requested through the configuration state, which is then stored in 
+the configPrams memberfield of the operational class.
+Issuing the event "start" from main, starts the scheduler, which will then wait until
+it gets a signal from the ActivationQueue. After this, the handleevent will invoke the
+proxy to request the work from the list. Doing this makes use of the .enqueue() function, 
+will then inserts them into the ActivationQueue. This actions notifies the waiting thread, that 
+there is work to be done. This newly spawned thread will the take the work from the queue using .remove() and it will spawn
+a request. Using polymorphism, it will then check if this work can be ran at all, and aftwards
+invoke the .call() function. This invokes the function from the references servant and the mode is changed.
+This also fullfills the promise and the proxy is delivered the future. though it is void,
+it still signals that the promise is delivered. 
