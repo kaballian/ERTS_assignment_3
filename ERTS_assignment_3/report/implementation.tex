@@ -190,7 +190,8 @@ This is key to enacting the GOF state pattern.
 Since all classes implement the same overall structure, only one will be shown here in the following section. 
 
 
-\subsection{Operational state declaration example}
+% \subsection{Operational state declaration example}
+\subsection{State example: Operational}
 \begin{lstlisting}[language=C++, caption={Operational state class declaration}, firstnumber=580]
 class Operational : public State
 {
@@ -223,7 +224,9 @@ private:
 
 \end{lstlisting}
 
-\subsection{Operational state definition example}
+\clearpage
+
+% \subsection{Operational state definition example}
 \begin{lstlisting}[language=C++, caption={Operational state class definition, partly}, firstnumber=780]
 //OPERATIONAL_______________________________________________________________
 void Operational::onEntry(StateMachine& sm) 
@@ -384,7 +387,8 @@ private:
 
 \end{lstlisting}
 
-% No text?
+The EmbeddedSystemX class is the one that holds the entire implementation. All the possible events are defined here and the statemachine is initialized by creating the first state, which in this case is the PowerOnSelfTest state. It is also through this class, that the user can interact with the statemachine.
+
 
 \subsection{Active object}
 A big focus point of this assignment, is to implement the RealTimeLoop state as an

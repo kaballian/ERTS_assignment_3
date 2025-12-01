@@ -1,14 +1,14 @@
 # Fdb version 4
-["biber ERTS_assignment_3_report"] 1764604746.36121 "ERTS_assignment_3_report.bcf" "ERTS_assignment_3_report.bbl" "ERTS_assignment_3_report" 1764607112.56909 0
-  "ERTS_assignment_3_report.bcf" 1764607112 107186 eaaa4cd7e05e4b6c6a6fb3c31db72029 "pdflatex"
+["biber ERTS_assignment_3_report"] 1764604746.36121 "ERTS_assignment_3_report.bcf" "ERTS_assignment_3_report.bbl" "ERTS_assignment_3_report" 1764608636.50659 0
+  "ERTS_assignment_3_report.bcf" 1764608636 107186 eaaa4cd7e05e4b6c6a6fb3c31db72029 "pdflatex"
   (generated)
   "ERTS_assignment_3_report.bbl"
   "ERTS_assignment_3_report.blg"
   (rewritten before read)
-["pdflatex"] 1764607109.27599 "c:/Users/ewoud/Dokumenter/GitHub/ERTS_assignment_3/ERTS_assignment_3/report/ERTS_assignment_3_report.tex" "ERTS_assignment_3_report.pdf" "ERTS_assignment_3_report" 1764607112.56977 0
-  "ERTS_assignment_3_report.aux" 1764607112 6026 f9859fba78b31af63365834a12622837 "pdflatex"
+["pdflatex"] 1764608633.19348 "c:/Users/ewoud/Dokumenter/GitHub/ERTS_assignment_3/ERTS_assignment_3/report/ERTS_assignment_3_report.tex" "ERTS_assignment_3_report.pdf" "ERTS_assignment_3_report" 1764608636.50726 0
+  "ERTS_assignment_3_report.aux" 1764608636 5885 38f762c50921ea783dbcb015c03f45b2 "pdflatex"
   "ERTS_assignment_3_report.bbl" 1764604747 0 d41d8cd98f00b204e9800998ecf8427e "biber ERTS_assignment_3_report"
-  "ERTS_assignment_3_report.run.xml" 1764607112 2364 3fb69b5152362405bea0d64702edcba3 "pdflatex"
+  "ERTS_assignment_3_report.run.xml" 1764608636 2364 3fb69b5152362405bea0d64702edcba3 "pdflatex"
   "ERTS_assignment_3_report.tex" 1764604374 1120 78e8942deaa4f45f1e2d83a191227576 ""
   "Introduction.tex" 1764604701 1034 54a16e30609c9da228b4181aa6e80fee ""
   "c:/Users/ewoud/Dokumenter/GitHub/ERTS_assignment_3/ERTS_assignment_3/report/ERTS_assignment_3_report.tex" 1764604374 1120 78e8942deaa4f45f1e2d83a191227576 ""
@@ -234,7 +234,7 @@
   "discussionAndConclusion.tex" 1764607108 1541 f59888377d45129df2f31774276d0923 ""
   "forside.tex" 1764604374 898 e73c74210a4fd18b5238b2e3f74035b8 ""
   "goals.tex" 1764604701 1298 a00c094b5f8e3837a681d7bbefec5405 ""
-  "implementation.tex" 1764607060 23441 fe29109c7c70842f9f53db005b693879 ""
+  "implementation.tex" 1764608629 23802 af2a25aec5036124e8c8a085edf17649 ""
   "logo.png" 1764604374 41748 aad5cecc7be3fcb94850fa24fd69e97f ""
   "pictures/class_diagram.png" 1764604374 70739 95128be551acc4a9ab7df616bf58cd85 ""
   "pictures/sequence_RealTimeLoop.png" 1764604374 74404 29b521efdcb6b26607daf9f7f9c57f63 ""
