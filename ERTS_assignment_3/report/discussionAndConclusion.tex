@@ -1,13 +1,13 @@
 \section{Discussion}
 Looking at the requirements for the overall system, the final implementaion is a close attempt, however
-minor functionality is still missing, specifically the suspend mechanism, which should halt the the 
+minor functionality are still missing, specifically the suspend mechanism, which should halt the 
 thread execution.
 
-looking at the Active object implementation, because the system is dealing with almost
+Looking at the Active object implementation, because the system is dealing with almost
 instantenously executed code, there is no real consequence of execution time, which is
 why an artificial thread sleep is introduced. This is also why the all the futures 
 used in the implementation are void. They are merely used to indicate that some work has been done,
-however they don't return anything. And all state processing is being held in the Servant
+however they don't return anything. And all state processing is being held in the Servant.
 
 As to whether the desired implementation lives up to the provided diagram is up for discussion,
 some of the descriptors, specifically "configX", "eventX/responseM n eventX" seemed a 

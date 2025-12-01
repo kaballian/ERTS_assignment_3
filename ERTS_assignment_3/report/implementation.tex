@@ -1,9 +1,9 @@
 \section{Implementation}
 
-As previously mentioned, to avoid c++ referencing issues, the entire implementation is made in one large file.
+As previously mentioned, to avoid C++ referencing issues, the entire implementation is made in one large file.
 In this section, some of the main takeaways from the implementation is highlighted.
 
-\subsection{headers and defines}
+\subsection{Headers and Defines}
 \begin{lstlisting}[language=C++, caption={include headers and custom defines}, firstnumber=1]
 #include <iostream>
 #include <cstdlib>
@@ -64,10 +64,10 @@ T* Singleton<T>::_instance = nullptr;
 The templated type ensures that different classes can invoke the singleton pattern, 
 because the destructor is protected, means that nothing can accidentally destroy the object.
 The idea is that the first time a state is required, it is constructed, and because
-the type is templated and made static, it is essentially remembered for the life of the programming.
-Thus whenever a templated type is invoked, which already exists, the pointer to that instance is returned instead.
+the type is templated and made static, it is essentially remembered for the life of the program.
+Thus whenever a templated type is invoked, which already exists, the pointer to the existing instance is returned instead.
 
-\subsection{event enum class}
+\subsection{Event enum class}
 \begin{lstlisting}[language=C++, caption={Event enum class}, firstnumber=53]
 enum class Event
 {
@@ -95,11 +95,11 @@ enum class Event
 };
 
 \end{lstlisting}
-The event enum class, acts a way to indicate what events is being passed around. 
+The event enum class, acts a way to indicate what events are being passed around. 
 This is combined with the handleevent function of every state, to control the statemachine.
 
 
-\subsection{state class}
+\subsection{State class}
 \begin{lstlisting}[language=C++, caption={state class}, firstnumber=92]
 class State
 {
@@ -118,12 +118,12 @@ public:
 };
 \end{lstlisting}
 
-Pure virtual class State. Because handleEvent is has a function that is = 0, means that it must
-be overriden by any class that inherits state. That and the two other functions onEntry and onExit,
+Pure virtual class State. Noteably the state class has a handleEvent fucntion, whihc is simply = 0. This means that it must
+be overriden by any class that inherits State. The handleEvent and the two other functions, onEntry and onExit,
 make up the three functions that the statemachine uses to transfer control. It is also what enacts
-the GOF state pattern, because it creates a new class with defined functions when the states is changed.
+the GOF state pattern, because it creates a new class with defined functions when the states are changed.
 
-\subsection{statemachine class}
+\subsection{Statemachine class}
 \begin{lstlisting}[language=C++, caption={statemachine class}, firstnumber=138]
     class StateMachine
 {
@@ -182,15 +182,16 @@ public:
 
 The statemachine class, is the main engine that drives the state changes.
 When instantiated, it sets the initialState and then drives the changes for everyclass.
-Due to the way the classes, or this case, states are implemented, all states comply with the interface.
+Due to the way the classes, or in this case, states are implemented, all states comply with the interface.
 All state classes makes use of dynamic binding, due to them having to override the functions to comply with 
 the pure virtual class. Meaning that all states acts on the handleevent function etc. 
 This is key to enacting the GOF state pattern.
 
-Since all classes implement the same overall structure, only one will be shown here. 
+Since all classes implement the same overall structure, only one will be shown here in the following section. 
 
 
-\subsection{operational state declaration example}
+% \subsection{Operational state declaration example}
+\subsection{State example: Operational}
 \begin{lstlisting}[language=C++, caption={Operational state class declaration}, firstnumber=580]
 class Operational : public State
 {
@@ -223,7 +224,9 @@ private:
 
 \end{lstlisting}
 
-\subsection{operational state definition example}
+\clearpage
+
+% \subsection{Operational state definition example}
 \begin{lstlisting}[language=C++, caption={Operational state class definition, partly}, firstnumber=780]
 //OPERATIONAL_______________________________________________________________
 void Operational::onEntry(StateMachine& sm) 
@@ -336,10 +339,10 @@ State* Operational::handleEvent(StateMachine& sm, Event e)
 \end{lstlisting}
 
 
-The Operational class, which acts the main driving state for the outer statemachinem, aswell as the
+The Operational class, which acts as the main driving state for the outer statemachine, aswell as the
 "owner" of the internal statemachine, refered to as "opFsm".
 The handlevent function does most of the heavy lifting, in terms of functionality.
-specifically the case "Event::start, which firstly dispatches the event run, to the internal 
+Specifically the case "Event::start, which firstly dispatches the event run, to the internal 
 statemachine, setting the stage for the scheduler to run. Afterwards its ensures
 that the state of the internal machine is RealTimeLoop, which means it can then use 
 the proxy which is owned by that state. From here the pendingFutures, which has been made using 
@@ -383,6 +386,8 @@ private:
 };
 
 \end{lstlisting}
+
+The EmbeddedSystemX class is the one that holds the entire implementation. All the possible events are defined here and the statemachine is initialized by creating the first state, which in this case is the PowerOnSelfTest state. It is also through this class, that the user can interact with the statemachine.
 
 
 \subsection{Active object}
@@ -655,16 +660,16 @@ private:
 The listing above is the entire code for using the active object implementation. 
 This implemention is an attempt at following the active object structure with the 
 commands pattern. The state RealTimeLoop owns the servant, scheduler and the proxy.
-The scheduler itself owns the ActivationQueue and all the requests are a inherited request type.
-Following the sequence diagram on figure: \ref{fig:sequenceRealTimeLoop}. A precondition t
+The scheduler itself owns the ActivationQueue and all the requests are a inherited request type. % What?
+Following the sequence diagram on figure \ref{fig:sequenceRealTimeLoop}. A precondition t
 this is that some work has been requested through the configuration state, which is then stored in 
 the configPrams memberfield of the operational class.
 Issuing the event "start" from main, starts the scheduler, which will then wait until
 it gets a signal from the ActivationQueue. After this, the handleevent will invoke the
 proxy to request the work from the list. Doing this makes use of the .enqueue() function, 
 will then inserts them into the ActivationQueue. This actions notifies the waiting thread, that 
-there is work to be done. This newly spawned thread will the take the work from the queue using .remove() and it will spawn
+there is work to be done. This newly spawned thread will then take the work from the queue using .remove() and it will spawn
 a request. Using polymorphism, it will then check if this work can be ran at all, and aftwards
 invoke the .call() function. This invokes the function from the references servant and the mode is changed.
-This also fullfills the promise and the proxy is delivered the future. though it is void,
+This also fullfills the promise and the proxy is delivered the future. Although it is a void type future,
 it still signals that the promise is delivered. 
